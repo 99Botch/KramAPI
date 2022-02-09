@@ -86,9 +86,10 @@ router.get('/', async (req, res) => {
 });
 
 // FIND BY ID
-router.get('/:id', verify, async (req, res) => {
+router.get('/:id', async (req, res) => {
     try{
         const user =  await User.findById(req.params.id);
+        if(!user) return res.status(404).json("user not found");
         res.json(user);    
     } catch(err) { res.status(500).json({message: err}) }
 });  
@@ -96,6 +97,10 @@ router.get('/:id', verify, async (req, res) => {
 // update
 router.put('/:id', verify, async (req, res) => {
     try{
+
+        let id = req.params.id || {};
+        if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
         const updateUser = await User.updateOne(
             {_id: req.params.id}, 
             { $set: { 
@@ -108,5 +113,19 @@ router.put('/:id', verify, async (req, res) => {
         res.json({message: err})
     }
 });  
+
+// delete
+router.delete('/:id', verify, async (req, res) => {
+    let id = req.params.id || {};
+    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+    try{
+        const removeUser = await User.deleteOne({_id: req.params.id});
+        res.json(removeUser);
+
+    } catch(err) {
+        res.json({message: err})
+    }
+});    
 
 module.exports = router;
