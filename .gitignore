@@ -1,0 +1,13 @@
+# Dependency directories
+node_modules/
+
+# dotenv environment variables file
+.env
+
+# Public.private keys
+src/id_rsa_pub.pem
+src/id_rsa_priv.pem
+
+# log files
+*.log
+logs/
