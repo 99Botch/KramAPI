@@ -1,35 +1,31 @@
+// Import the dependecies necessary to run the API
+// routers allows us to create routes in a specific file
 const router = require('express').Router();
-const User  = require('../models/users.model');
 const bcrypt  = require('bcryptjs');
 const jwt  = require('jsonwebtoken');
+// import the schema UserSchema as 'User'
+const User  = require('../models/users.model');
 const { registerValidation, loginValidation }= require('../config/validation')
 const verify  = require('../config/tokenValidation'); 
 
 // REGISTER NEW USER
 router.post('/register', async (req, res) => {
+    // Every user route will be accessible via /users/request_name (+ /:id to access a specific item)
+    // here the request is a 'post' one since the user details are sent to the db to be saved
 
-    // joi validation
+    // refer to ../config/validation -> registerValidation for further explanation
     const { error } = await registerValidation(req.body);
 
     // validation error
-    if(error) return res.status(400).json({
-        validation: false,
-        message: error.details[0]
-    });
+    if(error) return res.status(400).json(error.details[0]);
 
     // checking if the user mail is already in the database by sending a request
     const isCreditsTaken = await User.findOne({ 
-        $or: [
-            {username: req.body.username}, 
-            { email: req.body.email}
-        ]
+        $or: [ {username: req.body.username}, { email: req.body.email} ]
     });
 
     // uniqueness compromise
-    if(isCreditsTaken) return res.status(400).json({
-        success: false,
-        message: 'Username or Email is already taken'
-    });
+    if(isCreditsTaken) return res.status(400).json('Username or Email is already taken');
 
     // hash passwords
     const hashPassword = await bcrypt.hash(req.body.password, 10);
@@ -50,7 +46,7 @@ router.post('/register', async (req, res) => {
 
 });
 
-// LOGIN
+// LOGIN TO PROFILE
 router.post('/login', async (req, res) => {
 
     // joi validation
@@ -77,7 +73,7 @@ router.post('/login', async (req, res) => {
 
 });
 
-// FIND ALL
+// FIND ALL USERS
 router.get('/', async (req, res) => {
     try{
         const users = await User.find();
@@ -85,7 +81,7 @@ router.get('/', async (req, res) => {
     } catch(err) { res.status(500).json({message: err}) }
 });
 
-// FIND BY ID
+// FIND USER BY ID
 router.get('/:id', async (req, res) => {
     try{
         const user =  await User.findById(req.params.id);
@@ -94,7 +90,7 @@ router.get('/:id', async (req, res) => {
     } catch(err) { res.status(500).json({message: err}) }
 });  
 
-// update
+// UPDATE USER
 router.put('/:id', verify, async (req, res) => {
     try{
 
@@ -105,7 +101,8 @@ router.put('/:id', verify, async (req, res) => {
             {_id: req.params.id}, 
             { $set: { 
                 username: req.body.username, 
-                email: req.body.email 
+                email: req.body.email,
+                profile_pic_url: req.body.profile_pic_url 
             } }
         );
         res.json(updateUser);
@@ -114,14 +111,14 @@ router.put('/:id', verify, async (req, res) => {
     }
 });  
 
-// delete
+// DELETE USER
 router.delete('/:id', verify, async (req, res) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
     try{
-        const removeUser = await User.deleteOne({_id: req.params.id});
-        res.json(removeUser);
+        const removeUser = await User.deleteOne({_id: req.params.id}); 
+        res.json(removeUser); 
 
     } catch(err) {
         res.json({message: err})
