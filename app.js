@@ -6,7 +6,6 @@ const dotenv = require('dotenv');
 
 // import the routes that contain the logic communicating with the db
 const usersRoute = require('./routes/users.router');
-const postsRoute = require('./routes/posts.router');
 
 // execute express
 const app = express();
@@ -37,7 +36,6 @@ app.use(express.urlencoded({ extended: true }));
 // Route middlewares are functions executed when a specific route is called. Their can be as many routes as needed
 // Requests concerning user data will pass /users, etc
 app.use('/users', usersRoute);
-app.use('/posts', postsRoute);
 
 // specify which port (.env == DB_PORT) the app has to listen to the requests
 const port = process.env.DB_PORT || 8080
