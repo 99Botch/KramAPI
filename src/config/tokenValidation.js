@@ -4,7 +4,6 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next){
-
     // Authorization request header can be used to provide credentials that authenticate a user agent with a server, allowing access to a protected resource (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization)
     // if the token doesn't exist, access to the protected toutes is forbidden
     const authHeader = req.headers['authorization'];

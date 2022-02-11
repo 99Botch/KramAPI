@@ -1,16 +1,17 @@
-// import bcrypt library to has the passwords in the db
+// Import the dependecies necessary to run the API
+// routers allows us to create routes in a specific file
+const router = require('express').Router();
 const bcrypt  = require('bcryptjs');
-// import jwt to create tokens
 const jwt  = require('jsonwebtoken');
 // import the schema UserSchema as 'User'
 const User  = require('../models/users.model');
-// import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
+const verify  = require('../config/tokenValidation'); 
 // const { prependOnceListener } = require('../models/users.model');
 
 
-// REGISTER A NEW PROFILE
-module.exports.register = register = async (req, res, next) => {
+// REGISTER NEW USER
+router.post('/register', async (req, res) => {
     // Every user route will be accessible via /users/request_name (+ /:id to access a specific item)
     // here the request is a 'post' one since the user details are sent to the db to be saved
 
@@ -28,7 +29,7 @@ module.exports.register = register = async (req, res, next) => {
     const hashPassword = await bcrypt.hash(req.body.password, 10);
 
     /* at this point, all that is left is to create a new user based on the schema of the user model By hashing a plain text password plus a salt, the hash algorithm’s output is no longer predictable. 
-    // The same password will no longer yield the same hash. The salt gets automatically included with the hash, so you do not need to store it in a database. (https://heynode.com/blog/2020-04/salt-and-hash-passwords-bcrypt/)*/
+    // The same password will no longer yield the same hash. The salt gets automatically included with the hash, so you do not need to store it in a database. (https://heynode.com/blog/2020-04/salt-and-hash-passwords-bcrypt/) */
     const newUser = await new User({
         username: req.body.username,
         email: req.body.email,
@@ -40,11 +41,12 @@ module.exports.register = register = async (req, res, next) => {
         const registeredUser = await newUser.save();
         res.status(200).json(registeredUser);
     } catch (err) { res.status(400).send(err) }
-}
+});
 
 
 // LOGIN TO PROFILE
-module.exports.login = login = async (req, res, next) => {
+router.post('/login', async (req, res) => {
+
     // for loginValidation refer to ../config/validation -> if true, the API renders  the error
     const { error } = await loginValidation(req.body);
     if(error) return res.status(400).json(error.details[0]);
@@ -60,45 +62,36 @@ module.exports.login = login = async (req, res, next) => {
     // tokens are made of: 1. User _id 2. user mail 3. Secret key (.env) and will expire after 3 hours
     const token = jwt.sign( { _id: user.id }, process.env.SECRET_KEY, { expiresIn: '3h' });
     res.json(token);
-}
+});
 
-// FIND ALL USERS - getUsers will retrieve all of the users in the db via .find regardless of their information
-module.exports.getUsers = getUsers =  async (req, res, next) => {
+
+// FIND ALL USERS
+router.get('/', async (req, res) => {
+    // .find() retrieves all the users in the database regardless of their information
     try{
         const users = await User.find();
         if(!users) return res.status(404).json("no users in the db");
         res.json(users);
-        
+
     } catch(err) { res.status(500).json({message: err}) }
-}
+});
 
 
-// FIND USER BY /:ID - refer to the above function for further explanation
-module.exports.getUser = getUser = async (req, res, next) => {
+// FIND USER BY /:ID
+router.get('/:id', async (req, res) => {
+    // refer to the above function for further explanation
     try{
         const user =  await User.findById(req.params.id);
         if(!user) return res.status(404).json("user not found");
         res.json(user);  
 
     } catch(err) { res.status(500).json({message: err}) }
-}
-
-// DELETE USER PROFILE
-module.exports.deleteUser = deleteUser =  async (req, res, next) => {
-    // first, API checks if the user's id matches the request's id, if so .deleteOne deletes the User
-    let id = req.params.id || {};
-    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-
-    try{
-        // _id act as the identifier for the db for deletion
-        const removeUser = await User.deleteOne({_id: id}); 
-        res.json(removeUser); 
-    } catch(err) { res.json({message: err}) }
-}
+});  
 
 
 // UPDATE USER PROFILE
-module.exports.updateUser = updateUser = async (req, res, next) => {
+router.put('/:id', verify, async (req, res) => {
+    // refer to 'verify' in ../config/tokenValidation
     try{
         // first step consists to ccheck whether the user tries to update his profile or not
         let id = req.params.id || {};
@@ -144,7 +137,7 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
         });
 
     } catch(err) { res.json({message: err}) }
-}
+});  
 
 async function updateQuery (_updUser) {
     // updateUser is a new object of the user schema which may take the profile_pic_url attribute. _id act as the identifier for the db
@@ -158,3 +151,19 @@ async function updateQuery (_updUser) {
     );
     return updateUser;
 }
+
+
+// DELETE USER PROFILE
+router.delete('/:id', verify, async (req, res) => {
+    // refer to the above function for further explanation
+    let id = req.params.id || {};
+    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+    // _id act as the identifier for the db for deletion
+    try{
+        const removeUser = await User.deleteOne({_id: req.params.id}); 
+        res.json(removeUser); 
+    } catch(err) { res.json({message: err}) }
+});    
+
+module.exports = router;

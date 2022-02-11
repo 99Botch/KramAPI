@@ -4,7 +4,7 @@ const Joi = require('joi');
 const REG_PATTERN = "^(?=.*[0-9])(?=.*[a-zA-ZÀ-ȕ])([a-zA-ZÀ-ȕ0-9(),-_.,@ ]+)$";
 
 // registerValidation checks the validity of the data passed by /register (e.g, username must be between 6 and 30 characters long and is require for registration)
-const registerValidation = (data) => {
+module.exports.registerValidation = registerValidation = (data) => {
     const schema = Joi.object({
         username: Joi.string()
             .min(6)
@@ -26,7 +26,7 @@ const registerValidation = (data) => {
 }
 
 // LOGIN VALIDATION
-const loginValidation = (data) => {
+module.exports.loginValidation = loginValidation = (data) => {
     // refer to the above function
     const schema = Joi.object({ 
         email: Joi.string()
@@ -40,8 +40,8 @@ const loginValidation = (data) => {
     return schema.validate(data);
 }
 
-// UPDATE VALIDATION
-const updateValidation = (data) => {
+// UPDATE VALIDATION 
+module.exports.updateValidation = updateValidation = (data) => {
     // refer to registerValidation
     const schema = Joi.object({
         username: Joi.string()
@@ -57,7 +57,3 @@ const updateValidation = (data) => {
 
     return schema.validate(data);
 }
-
-module.exports.registerValidation = registerValidation;
-module.exports.loginValidation = loginValidation;
-module.exports.updateValidation = updateValidation;
