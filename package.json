@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "nodemon src/app.js"
   },
-  "author": "",
+  "author": "Yvan Monod",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -5,6 +5,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 // import the routes that contain the logic communicating with the db
+// const usersRoute = require('./src/routes/users.router');
 const usersRoute = require('./routes/users.router');
 
 // execute express

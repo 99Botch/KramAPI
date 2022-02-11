@@ -7,7 +7,7 @@ const jwt  = require('jsonwebtoken');
 const User  = require('../models/users.model');
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 const verify  = require('../config/tokenValidation'); 
-const { prependOnceListener } = require('../models/users.model');
+// const { prependOnceListener } = require('../models/users.model');
 
 
 // REGISTER NEW USER
