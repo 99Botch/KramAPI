@@ -39,7 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/users', usersRoute);
 
 // specify which port (.env == DB_PORT) the app has to listen to the requests
-const port = process.env.DB_PORT || 8080
+const port = process.env.DB_PORT || 3001
 app.listen(port, () => {
     console.log(`Server Up in Port ${port}`);
 });

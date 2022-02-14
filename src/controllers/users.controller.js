@@ -4,6 +4,7 @@ const bcrypt  = require('bcryptjs');
 const jwt  = require('jsonwebtoken');
 // import the schema UserSchema as 'User'
 const User  = require('../models/users.model');
+const Token  = require('../models/tokens.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
@@ -58,8 +59,14 @@ module.exports.login = login = async (req, res, next) => {
     if(!validPassword) return res.status(400).json({ message: 'Invalid password' });   
 
     // tokens are made of: 1. User _id 2. user mail 3. Secret key (.env) and will expire after 3 hours
-    const token = jwt.sign( { _id: user.id }, process.env.SECRET_KEY, { expiresIn: '3h' });
-    res.json(token);
+    const token = await new Token({
+        token: jwt.sign( { _id: user.id }, process.env.SECRET_KEY, { expiresIn: '2m' })
+    });
+
+    try{
+        const registeredToken = await token.save();
+        res.status(200).json(registeredToken);
+    } catch(err) { res.status(500).json({message: err}) }
 }
 
 // FIND ALL USERS - getUsers will retrieve all of the users in the db via .find regardless of their information
