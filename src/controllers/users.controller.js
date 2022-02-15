@@ -4,7 +4,7 @@ const bcrypt  = require('bcryptjs');
 const jwt  = require('jsonwebtoken');
 // import the schema UserSchema as 'User'
 const User  = require('../models/users.model');
-const Token  = require('../models/tokens.model');
+const Session  = require('../models/sessions.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
@@ -59,15 +59,31 @@ module.exports.login = login = async (req, res, next) => {
     if(!validPassword) return res.status(400).json({ message: 'Invalid password' });   
 
     // tokens are made of: 1. User _id 2. user mail 3. Secret key (.env) and will expire after 3 hours
-    const token = await new Token({
-        token: jwt.sign( { _id: user.id }, process.env.SECRET_KEY, { expiresIn: '2m' })
+    const session = await new Session({
+        user_id: user._id,
+        token: jwt.sign( { _id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1h' })
     });
 
     try{
-        const registeredToken = await token.save();
-        res.status(200).json(registeredToken);
+        const token = await session.save();
+        res.status(200).json(token);
     } catch(err) { res.status(500).json({message: err}) }
 }
+
+
+// LOGOUT PROFILE
+module.exports.logout = logout =  async (req, res, next) => {
+        // first, API checks if the user's id matches the request's id, if so .deleteOne deletes the User
+        let id = req.params.id || {};
+        if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+        try{
+            // _id act as the identifier for the db for deletion
+            const logout = await Session.deleteOne({user_id: id}); 
+            res.json(logout); 
+        } catch(err) { res.json({message: err}) }
+}
+
 
 // FIND ALL USERS - getUsers will retrieve all of the users in the db via .find regardless of their information
 module.exports.getUsers = getUsers =  async (req, res, next) => {
