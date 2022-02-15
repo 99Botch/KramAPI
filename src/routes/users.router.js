@@ -19,19 +19,27 @@ if an URI ends with "/:n", that means that a value is passed to te URI, for exam
 line 25, where the method will fetch a user based on its id.
 */
 
+
+// USERS URI
 router.post("/register", register);
-router.post("/login", login);
-router.get("/", getUsers);
-// router.get("/:id", getUser);
-router.get('/:id', verify, async function(req,res){
-    await getUser(req,res);
+// router.get("/", getUsers);
+router.get('/', async function(req,res){
+    console.log("bite")
+    await getUsers(req,res);
 });
+router.get("/:id", getUser);
+// router.get('/:id', verify, async function(req,res){
+//     await getUser(req,res);
+// });
 router.put('/:id', verify, async function(req,res){
     await updateUser(req,res);
 });
 router.delete('/:id', verify, async function(req,res){
     await deleteUser(req,res);
 });
+
+// SESSIONS URI
+router.post("/login", login);
 router.delete('/logout/:id', verify, async function(req,res){
     await logout(req,res);
 });

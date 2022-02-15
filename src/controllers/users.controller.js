@@ -4,9 +4,10 @@ const bcrypt  = require('bcryptjs');
 const jwt  = require('jsonwebtoken');
 // import the schema UserSchema as 'User'
 const User  = require('../models/users.model');
-const Session  = require('../models/sessions.model');
+const Sessions  = require('../models/sessions.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
+const mongoose = require('mongoose');
 // const { prependOnceListener } = require('../models/users.model');
 
 
@@ -59,14 +60,26 @@ module.exports.login = login = async (req, res, next) => {
     if(!validPassword) return res.status(400).json({ message: 'Invalid password' });   
 
     // tokens are made of: 1. User _id 2. user mail 3. Secret key (.env) and will expire after 3 hours
-    const session = await new Session({
+    const session = await new Sessions({
         user_id: user._id,
-        token: jwt.sign( { _id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '1h' })
+        token: jwt.sign( { _id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '3h' })
     });
 
     try{
         const token = await session.save();
         res.status(200).json(token);
+    } catch(err) { res.status(500).json({message: err}) }
+}
+
+
+// FIND SESSION BY ID - refer to the above function for further explanation
+module.exports.getSession = getSession = async (req, res, next) => {
+    let id = req.params.id || {};
+    try{
+        const session =  await Sessions.findOne({"user_id": id});
+        if(!session) return res.status(404).json("session not found");
+        res.json(session);  
+
     } catch(err) { res.status(500).json({message: err}) }
 }
 
@@ -79,7 +92,9 @@ module.exports.logout = logout =  async (req, res, next) => {
 
         try{
             // _id act as the identifier for the db for deletion
-            const logout = await Session.deleteOne({user_id: id}); 
+            const session =  await Sessions.findOne({"user_id": id});
+            if(!session) return res.status(404).json("session not found");
+            const logout = await Sessions.deleteOne({user_id: id}); 
             res.json(logout); 
         } catch(err) { res.json({message: err}) }
 }
