@@ -72,11 +72,10 @@ module.exports.login = login = async (req, res, next) => {
 }
 
 
-// FIND SESSION BY ID - refer to the above function for further explanation
+// FIND USER BY /:ID 
 module.exports.getSession = getSession = async (req, res, next) => {
-    let id = req.params.id || {};
     try{
-        const session =  await Sessions.findOne({"user_id": id});
+        const session =  await Sessions.findOne({"user_id": req.params.id });
         if(!session) return res.status(404).json("session not found");
         res.json(session);  
 
@@ -91,9 +90,6 @@ module.exports.logout = logout =  async (req, res, next) => {
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
         try{
-            // _id act as the identifier for the db for deletion
-            const session =  await Sessions.findOne({"user_id": id});
-            if(!session) return res.status(404).json("session not found");
             const logout = await Sessions.deleteOne({user_id: id}); 
             res.json(logout); 
         } catch(err) { res.json({message: err}) }
