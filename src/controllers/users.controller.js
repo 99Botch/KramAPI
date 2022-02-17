@@ -7,7 +7,6 @@ const User  = require('../models/users.model');
 const Sessions  = require('../models/sessions.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
-const mongoose = require('mongoose');
 // const { prependOnceListener } = require('../models/users.model');
 
 
@@ -138,6 +137,9 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
         let id = req.params.id || {};
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
+        // .hash takes two parameters to cypher a password:  the password in plain text & salt (a random string) 
+        const hashPassword = await bcrypt.hash(req.body.password, 10);
+        
         // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
         const { error } = await updateValidation(req.body);
         if(error) return res.status(400).json(error.details[0]);
@@ -159,6 +161,7 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
                 _id: id,
                 username: req.body.username,
                 email: req.body.email,
+                password: hashPassword,
                 profile_pic_url: req.body.profile_pic_url
             });
             
@@ -187,6 +190,7 @@ async function updateQuery (_updUser) {
         { $set: { 
             username: _updUser.username, 
             email: _updUser.email,
+            password: _updUser.password,
             profile_pic_url: _updUser.profile_pic_url 
         }}
     );

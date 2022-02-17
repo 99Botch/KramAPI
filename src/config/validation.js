@@ -51,6 +51,8 @@ module.exports.updateValidation = updateValidation = (data) => {
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
             .required(),
+        password: Joi.string()
+            .pattern(new RegExp(`${ REG_PATTERN }`)),
         // profile_pic_url is a string storing the pp url yet is not required
         profile_pic_url: Joi.string()
     });
