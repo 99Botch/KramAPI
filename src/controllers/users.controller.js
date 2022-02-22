@@ -67,7 +67,7 @@ module.exports.login = login = async (req, res, next) => {
     try{
         const token = await session.save();
         res.status(200).json(token);
-    } catch(err) { res.status(500).json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -78,7 +78,7 @@ module.exports.getSession = getSession = async (req, res, next) => {
         if(!session) return res.status(404).json("session not found");
         res.json(session);  
 
-    } catch(err) { res.status(500).json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -91,7 +91,7 @@ module.exports.logout = logout =  async (req, res, next) => {
         try{
             const logout = await Sessions.deleteOne({user_id: id}); 
             res.json(logout); 
-        } catch(err) { res.json({message: err}) }
+        } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -102,7 +102,7 @@ module.exports.getUsers = getUsers =  async (req, res, next) => {
         if(!users) return res.status(404).json("no users in the db");
         res.json(users);
         
-    } catch(err) { res.status(500).json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -113,7 +113,7 @@ module.exports.getUser = getUser = async (req, res, next) => {
         if(!user) return res.status(404).json("user not found");
         res.json(user);  
 
-    } catch(err) { res.status(500).json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -189,7 +189,7 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
             return res.status(400).json('Username or Email is already taken');
         });
 
-    } catch(err) { res.json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 async function updateQuery (_updUser) {

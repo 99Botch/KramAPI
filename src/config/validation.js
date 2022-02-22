@@ -78,5 +78,22 @@ module.exports.updatePasswordValidation = updatePasswordValidation = (data) => {
         repeat_password: Joi.ref('password'),
     });
 
+    return schema.validate(data);   
+}
+
+// DECK CREATION
+module.exports.deckCreationValidation = deckCreationValidation = (data) => {
+    // refer to registerValidation
+    const schema = Joi.object({
+        name: Joi.string()
+            .min(6)
+            .max(30)
+            .required(),  
+        category: Joi.string()
+            .required(),
+        sub_category: Joi.string()
+            .required(),
+    });
+
     return schema.validate(data);
 }

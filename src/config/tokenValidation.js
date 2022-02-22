@@ -14,6 +14,7 @@ module.exports = function(req, res, next){
 
     // user is not recognized or expired, ths access is not granted. SECRET_KEY dechiphers the token
     jwt.verify(token, process.env.SECRET_KEY, async (err, user) => {
+        
         if (err){
             const deleteExpiredToken = await Sessions.deleteOne({ user_id: req.params.id }); 
             return res.status(401).json({err: err, message: "login to your account", deletion: deleteExpiredToken });
