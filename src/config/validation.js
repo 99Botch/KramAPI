@@ -40,7 +40,7 @@ module.exports.loginValidation = loginValidation = (data) => {
     return schema.validate(data);
 }
 
-// UPDATE VALIDATION 
+// UPDATE PROFILE VALIDATION 
 module.exports.updateValidation = updateValidation = (data) => {
     // refer to registerValidation
     const schema = Joi.object({
@@ -50,11 +50,32 @@ module.exports.updateValidation = updateValidation = (data) => {
             .required(),
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
-            .required(),
-        password: Joi.string()
-            .pattern(new RegExp(`${ REG_PATTERN }`)),
-        // profile_pic_url is a string storing the pp url yet is not required
+            .required()
+    });
+
+    return schema.validate(data);
+}
+
+// UPDATE PIC PROFILE 
+module.exports.updatePicValidation = updatePicValidation = (data) => {
+    // refer to registerValidation
+    const schema = Joi.object({
         profile_pic_url: Joi.string()
+        .required()
+    });
+
+    return schema.validate(data);
+}
+
+// UPDATE PASSWORD 
+module.exports.updatePasswordValidation = updatePasswordValidation = (data) => {
+    // refer to registerValidation
+    const schema = Joi.object({
+        password: Joi.string()
+            .pattern(new RegExp(`${ REG_PATTERN }`))
+            .required(),
+        // repeat password must match the first one
+        repeat_password: Joi.ref('password'),
     });
 
     return schema.validate(data);

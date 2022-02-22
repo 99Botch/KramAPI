@@ -71,7 +71,7 @@ module.exports.login = login = async (req, res, next) => {
 }
 
 
-// FIND USER BY /:ID 
+// FIND SESSION BY /:ID 
 module.exports.getSession = getSession = async (req, res, next) => {
     try{
         const session =  await Sessions.findOne({"user_id": req.params.id });
@@ -116,17 +116,31 @@ module.exports.getUser = getUser = async (req, res, next) => {
     } catch(err) { res.status(500).json({message: err}) }
 }
 
+
 // DELETE USER PROFILE
 module.exports.deleteUser = deleteUser =  async (req, res, next) => {
     // first, API checks if the user's id matches the request's id, if so .deleteOne deletes the User
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
-    try{
-        // _id act as the identifier for the db for deletion
-        const removeUser = await User.deleteOne({_id: id}); 
-        res.json(removeUser); 
-    } catch(err) { res.json({message: err}) }
+    const session =  await Sessions.findOne({"user_id": id });
+
+    if(!session){
+        try{
+            // _id act as the identifier for the db for deletion
+            const removeUser = await User.deleteOne({_id: id}); 
+            res.status(200).json(removeUser); 
+        } catch(err) { res.json({ message: err }) }
+    } else {
+        try{
+            Promise.all([
+                Sessions.deleteOne({ "user_id": id }),
+                User.deleteOne({_id: id})
+            ]);
+            res.status(200).json({message: "Deletion is successful"});
+
+        } catch(err) { res.status(400).json({ message: err })}
+    }
 }
 
 
@@ -136,10 +150,7 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
         // first step consists to ccheck whether the user tries to update his profile or not
         let id = req.params.id || {};
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-
-        // .hash takes two parameters to cypher a password:  the password in plain text & salt (a random string) 
-        const hashPassword = await bcrypt.hash(req.body.password, 10);
-        
+       
         // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
         const { error } = await updateValidation(req.body);
         if(error) return res.status(400).json(error.details[0]);
@@ -160,9 +171,7 @@ module.exports.updateUser = updateUser = async (req, res, next) => {
             const updUser = await new User({
                 _id: id,
                 username: req.body.username,
-                email: req.body.email,
-                password: hashPassword,
-                profile_pic_url: req.body.profile_pic_url
+                email: req.body.email
             });
             
             // User is pushed to the database if the details don't exists or if the user is not updating is mail/username
@@ -189,10 +198,55 @@ async function updateQuery (_updUser) {
         {_id: _updUser._id}, 
         { $set: { 
             username: _updUser.username, 
-            email: _updUser.email,
-            password: _updUser.password,
-            profile_pic_url: _updUser.profile_pic_url 
+            email: _updUser.email
         }}
     );
     return updateUser;
+}
+
+
+// UPDATE USER PROFILE PICTURE
+module.exports.updateUserPic = updateUserPic = async (req, res, next) => {
+    try{
+        // first step consists to ccheck whether the user tries to update his profile or not
+        let id = req.params.id || {};
+        if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+       
+        // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
+        const { error } = await updatePicValidation(req.body);
+        if(error) return res.status(400).json(error.details[0]);
+
+        const updatePic = await User.updateOne(
+            { _id: id }, 
+            { $set: { profile_pic_url: req.body.profile_pic_url }},
+            { upsert: true }
+        );
+
+        return res.status(200).json(updatePic);
+
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
+
+// UPDATE USER PROFILE PICTURE
+module.exports.updateUserPassword = updateUserPassword = async (req, res, next) => {
+    try{
+        // first step consists to ccheck whether the user tries to update his profile or not
+        let id = req.params.id || {};
+        if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+       
+        // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
+        const { error } = await updatePasswordValidation(req.body);
+        if(error) return res.status(400).json(error.details[0]);
+
+        const hashPassword = await bcrypt.hash(req.body.password, 10);
+
+        const updatePassword = await User.updateOne(
+            { _id: id }, 
+            { $set: { password: hashPassword }}
+        );
+
+        return res.status(200).json(updatePassword);
+
+    } catch(err) { res.status(400).json({message: err}) }
 }
