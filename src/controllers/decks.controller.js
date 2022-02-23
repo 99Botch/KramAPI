@@ -20,12 +20,8 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         private: true,
         description: null,
         owners_id: [],
-        deck_style_id: [],
-        votes: [{
-            voters_id: [],
-            upvote: 0,
-            downvote: 0,
-        }]
+        deck_style_id: null,
+        votes: []
     });
 
     try{
@@ -48,12 +44,12 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
 
 // RETRIEVE PERSONNAL DECKS
 module.exports.userDecks = userDecks = async (req, res, next) => {    
-        try{
-            const decks =  await Deck.find({creator_id: req.params.id});
-            if(!decks) return res.status(404).json("You don't have any decks yet");
-            res.json(decks);  
+    try{
+        const decks =  await Deck.find({creator_id: req.params.id});
+        if(!decks) return res.status(404).json("You don't have any decks yet");
+        res.json(decks);  
 
-        } catch(err) { res.status(400).json({message: err}) }
+    } catch(err) { res.status(400).json({message: err}) }
 }
 
 
@@ -76,18 +72,66 @@ module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
 module.exports.updateDeck = updateDeck =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-
-    let deck_id = req.body.deck_id
-
-    const deck = await Deck.find({ _id: deck_id , creator_id: id });
     
-    res.json(deck)
-    // try{
-    //     if (!deck){ 
-    //         res.status(400).json({ message: "Deck either does not exist or is not yoursto delete" });
-    //     } else {
-    //         const deleteDeck = await deck.deleteOne({ _id: deck_id });
-    //         res.status(200).json(deleteDeck);    
-    //     }
-    // } catch(err) { res.status(400).json({ message: err })}
+    let deck_id = req.body.deck_id
+    
+    try{
+        let currentDate = new Date();
+        
+        const updateDeck = await Deck.updateOne(
+            { _id: deck_id, creator_id: id }, 
+            { $set: { 
+                name: req.body.name, 
+                category: req.body.category, 
+                sub_category: req.body.sub_category, 
+                last_update: currentDate
+            }}
+        );
+
+        if(!updateDeck) return res.status(404).json("Deck not found or not yours");
+        res.status(200).json(updateDeck);    
+    } catch (err){res.status(500).json({ message: "" + err  })}
+}
+
+// UPDATE DECK PRIVACY
+module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
+    let id = req.params.id || {};
+    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+    
+    let deck_id = req.body.deck_id
+    
+    try{
+        const switchPrivacy = await Deck.updateOne(
+            { _id: deck_id, creator_id: id }, 
+            { $set: { 
+                private: req.body.private,
+                description: req.body.description
+            }}
+        );
+        if(switchPrivacy.modifiedCount == 0) return res.status(404).json("Deck not found or not yours");
+        res.status(200).json(switchPrivacy);    
+    } catch (err){res.status(500).json({ message: "" + err  })}
+}
+
+
+// UPDATE DECK VOTES
+module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
+    let id = req.params.id || {};
+    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+    
+    let deck_id = req.body.deck_id
+    
+    try{
+        const voting = await Deck.updateOne(
+            { _id: deck_id, creator_id: id }, 
+            { $set: { votes: [{ 
+                voter_id: id,
+                vote: req.body.vote
+                }]
+            }},
+            { upsert: true }
+        );
+        if(!voting) return res.status(404).json("Deck not found or not yours");
+        res.status(200).json(voting);    
+    } catch (err){res.status(500).json({ message: "" + err  })}
 }

@@ -45,24 +45,18 @@ const DeckSchema = mongoose.Schema({
             required: false
         },
     }],
-    deck_style_id: [{
+    deck_style_id: {
         type: mongoose.ObjectId,
         _id: {
             required: false
         },
-    }],
+    },
     votes: [{      
-        voters_id: [{
+        voter_id: {
             type: mongoose.ObjectId,
-            _id: {
-                required: false
-            },
-        }],
-        upvote: {
-            type: Number
         },
-        downvote: {
-            type: Number
+        vote: {
+            type: String
         },
         _id: {
             required: false
