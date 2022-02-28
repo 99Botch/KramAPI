@@ -116,20 +116,18 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
 
 // UPDATE DECK VOTES
 module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
-    let id = req.params.id || {};
-    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-    
+    let id = req.params.id || {};    
     let deck_id = req.body.deck_id
-    
+    console.log(deck_id)
     try{
         const voting = await Deck.updateOne(
-            { _id: deck_id, creator_id: id }, 
-            { $set: { votes: [{ 
+            { _id: deck_id }, 
+            { $push: { votes: [{ 
                 voter_id: id,
                 vote: req.body.vote
                 }]
             }},
-            { upsert: true }
+            {upsert: true}
         );
         if(!voting) return res.status(404).json("Deck not found or not yours");
         res.status(200).json(voting);    

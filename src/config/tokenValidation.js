@@ -1,3 +1,4 @@
+// const jwt_decode = require ('jwt-decode');
 // tokenValidation is there to check the identity of the user after successful log in
 // jwt insure secure information transmission through a compact and self detained string holding information
 // such as the user's mail address.
@@ -16,8 +17,12 @@ module.exports = function(req, res, next){
     jwt.verify(token, process.env.SECRET_KEY, async (err, user) => {
         
         if (err){
-            const deleteExpiredToken = await Sessions.deleteOne({ user_id: req.params.id }); 
-            return res.status(401).json({err: err, message: "login to your account", deletion: deleteExpiredToken });
+            const expiredSession =  await Sessions.findOne({ user_id: req.params.id }); 
+            if(expiredSession){
+                let sessionId = expiredSession._id.toString()
+                const deleteExpiredToken = await Sessions.findByIdAndRemove({ _id: sessionId }); 
+                return res.status(401).json({err: err, message: "login to your account", deletion: deleteExpiredToken });
+            }
         } 
         req.user = user;
         next();

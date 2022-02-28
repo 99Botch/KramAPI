@@ -57,11 +57,13 @@ module.exports.login = login = async (req, res, next) => {
     // .compare checks the validity of the req.body.password (from the form) against user.password (hashed) -> if true, the API renders  the error
     const validPassword = await bcrypt.compare(req.body.password, user.password);
     if(!validPassword) return res.status(400).json({ message: 'Invalid password' });   
+    
+    await Sessions.deleteOne({ user_id: user._id.toString() }); 
 
     // tokens are made of: 1. User _id 2. user mail 3. Secret key (.env) and will expire after 3 hours
     const session = await new Sessions({
         user_id: user._id,
-        token: jwt.sign( { _id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '3h' })
+        token: jwt.sign( { _id: user.id, email: user.email }, process.env.SECRET_KEY, { expiresIn: '6h' })
     });
 
     try{
@@ -228,12 +230,13 @@ module.exports.updateUserPic = updateUserPic = async (req, res, next) => {
 }
 
 
-// UPDATE USER PROFILE PICTURE
+// UPDATE USER PASSWOR
 module.exports.updateUserPassword = updateUserPassword = async (req, res, next) => {
     try{
         // first step consists to ccheck whether the user tries to update his profile or not
         let id = req.params.id || {};
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+        // if (id != req.user._id) return res.status(401).json("Ids aren't matching");
        
         // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
         const { error } = await updatePasswordValidation(req.body);
