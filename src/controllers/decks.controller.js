@@ -26,7 +26,7 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
 
     try{
         const saveDeck = await deck.save();
-        res.status(200).json(saveDeck);
+        return res.status(200).json(saveDeck);
     } catch(err) { res.status(400).json({message: err}) }
 }
 
@@ -36,7 +36,7 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
     try{
         const decks = await Deck.find({ private: false });
         if(!decks) return res.status(404).json("No public decks in the db");
-        res.json(decks);
+        return res.json(decks);
         
     } catch(err) { res.status(400).json({message: err}) }
 }
@@ -47,7 +47,7 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     try{
         const decks =  await Deck.find({creator_id: req.params.id});
         if(!decks) return res.status(404).json("You don't have any decks yet");
-        res.json(decks);  
+        return res.json(decks);  
 
     } catch(err) { res.status(400).json({message: err}) }
 }
@@ -63,7 +63,7 @@ module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
     try{
         const deleteDeck = await Deck.deleteOne({_id: deck_id, creator_id: id });
         if(deleteDeck.deletedCount === 0) return res.status(404).json("Deck not found or not yours");
-        res.status(200).json(deleteDeck);    
+        return res.status(200).json(deleteDeck);    
     } catch (err){res.status(500).json({ message:  err  })}
 }
 
@@ -89,7 +89,7 @@ module.exports.updateDeck = updateDeck =  async (req, res, next) => {
         );
 
         if(!updateDeck) return res.status(404).json("Deck not found or not yours");
-        res.status(200).json(updateDeck);    
+        return res.status(200).json(updateDeck);    
     } catch (err){res.status(500).json({ message: "" + err  })}
 }
 
@@ -109,7 +109,7 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
             }}
         );
         if(switchPrivacy.modifiedCount == 0) return res.status(404).json("Deck not found or not yours");
-        res.status(200).json(switchPrivacy);    
+        return res.status(200).json(switchPrivacy);    
     } catch (err){res.status(500).json({ message: "" + err  })}
 }
 
@@ -130,6 +130,6 @@ module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
             {upsert: true}
         );
         if(!voting) return res.status(404).json("Deck not found or not yours");
-        res.status(200).json(voting);    
+        return res.status(200).json(voting);    
     } catch (err){res.status(500).json({ message: "" + err  })}
 }

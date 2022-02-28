@@ -8,6 +8,7 @@ const dotenv = require('dotenv');
 // const usersRoute = require('./src/routes/users.router');
 const usersRoute = require('./routes/users.router');
 const decksRoute = require('./routes/decks.router');
+const cardsRoute = require('./routes/cards.router');
 
 // execute express
 const app = express();
@@ -39,19 +40,10 @@ app.use(express.urlencoded({ extended: true }));
 // Requests concerning user data will pass /users, etc
 app.use('/users', usersRoute);
 app.use('/decks', decksRoute);
+app.use('/cards', cardsRoute);
 
 // specify which port (.env == DB_PORT) the app has to listen to the requests
 const port = process.env.DB_PORT || 3001
 app.listen(port, () => {
     console.log(`Server Up in Port ${port}`);
 });
-
-// ------------------------------------------------------------------------------------------------
-
-// fetch('http://localhost:3000/posts')
-// .then(result => {
-// return result.json();
-// })
-// .then(data => {
-// console.log(data);
-// })
