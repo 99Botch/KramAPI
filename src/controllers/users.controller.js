@@ -5,6 +5,8 @@ const jwt  = require('jsonwebtoken');
 // import the schema UserSchema as 'User'
 const User  = require('../models/users.model');
 const Sessions  = require('../models/sessions.model');
+const Decks  = require('../models/decks.model');
+const UserDeckCard  = require('../models/user_deck_card.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
@@ -125,9 +127,13 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
-    const session =  await Sessions.findOne({"user_id": id });
+    const userData = await Promise.all([
+        Sessions.findOne({"user_id": id }),
+            Decks.find({"creator_id": id }),
+            UserDeckCard.find({"user_id": id })
+    ]);
 
-    if(!session){
+    if(!userData){
         try{
             // _id act as the identifier for the db for deletion
             const removeUser = await User.deleteOne({_id: id}); 
@@ -137,7 +143,9 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
         try{
             Promise.all([
                 Sessions.deleteOne({ "user_id": id }),
-                User.deleteOne({_id: id})
+                User.deleteOne({_id: id}),
+                Decks.deleteMany({ "user_id": id }),
+                UserDeckCard.deleteMany({ "user_id": id }),
             ]);
             res.status(200).json({message: "Deletion is successful"});
 
