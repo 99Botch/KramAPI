@@ -4,6 +4,10 @@ const mongoose = require('mongoose');
 
 
 const UserDeckCardSchema = mongoose.Schema({
+    user_id: {
+        type: mongoose.ObjectId,
+        required: true,
+    },
     deck_id: {
         type: mongoose.ObjectId,
         required: true,
