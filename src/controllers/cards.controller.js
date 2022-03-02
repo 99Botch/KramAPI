@@ -113,47 +113,42 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
         }).limit(20);
         if(!cardsInDeck) return res.status(404).json("Error | no cards in the deck");
         
-        let bite = cardsInDeck[0].cards
-        const card_ids = bite.map(card =>{
+        let ids = cardsInDeck[0].cards
+        const card_ids = ids.map(card =>{
             return card.card_id
         })
+        const cardsQuery = await Card.find({ '_id': { $in: card_ids } });
 
-        const cards = await Card.find({ '_id': { $in: card_ids } });
+        let deck = {
+            _id: cardsInDeck[0]._id,
+            user_id: cardsInDeck[0].user_id,
+            deck_id: cardsInDeck[0].deck_id,
+            cards: []
+        }
 
-        // let deckCards = {
-        //     _id: cardsInDeck._id,
-        // };
+        cardsInDeck[0].cards.map(item => {
+            console.log(cardsQuery);
 
-        cards.forEach(card => {
-            const found = cardsInDeck.find(item => item.cards.card_id == card._id);
-            console.log(found)
-        })
+            const found = cardsQuery.find(card => card._id.toString() == item.card_id.toString());
 
-
-        // cards.forEach(card => {
-        //     let card_id = card._id.toString();
-        //     // const found = cardsInDeck.find(item => item.cards.card_id == card_id);
-        //     const merged = {
-        //         _id: cardsInDeck._id,
-        //         // user_id: found.user_id,
-        //         // deck_id: found.deck_id,
-        //         // card_id: found.card_id,
-        //         creator_id: card.creator_id,
-        //         // last_review: found.last_review,
-        //         // review_lapse: found.review_lapse,
-        //         // fail_counter: found.fail_counter,
-        //         // ease_factor: found.ease_factor,
-        //         // is_new: found.is_new,
-        //         // style_id: found.style_id,
-        //         img_url: card.img_url,
-        //         question: card.question,
-        //         answer: card.answer,
-        //     };
-        //     deckCards.push(merged)
-        // });
+            if(found){
+                let card = {
+                    creator_id: found.creator_id,
+                    img_url: found.img_url,
+                    question: found.question,
+                    answer: found.answer,
+                    last_review: item.last_review,
+                    review_lapse: item.review_lapse,
+                    fail_counter: item.fail_counter,
+                    ease_factor: item.ease_factor,
+                    is_new: item.is_new,
+                    style_id: item.style_id
+                };
+                deck.cards.push(card);
+            }
+        });
         
-        return res.status(200).json(cards);
-        // return res.status(200).json(cardsInDeck);
+        return res.status(200).json(deck);
         
     } catch(err) { return res.status(400).json({message: err}) }
 }
