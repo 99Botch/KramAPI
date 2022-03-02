@@ -1,5 +1,6 @@
 // const Sessions  = require('../models/sessions.model');
 const Deck  = require('../models/decks.model');
+const UserDeckCards  = require('../models/user_deck_cards.model');
 const { deckCreationValidation }= require('../config/validation')
 
 
@@ -24,9 +25,20 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         votes: []
     });
 
+    const userDeckCards = await new UserDeckCards({
+        user_id: id,
+        deck_id: deck._id,
+        cards: []
+    });
+
     try{
-        const saveDeck = await deck.save();
-        return res.status(200).json(saveDeck);
+        Promise.all([
+            await deck.save(),
+            await userDeckCards.save()
+        ])
+        .then( async ([ deck, user_deck_cards ]) => {
+            return res.status(200).json({deck: deck, userDeckCards: user_deck_cards});
+        })
     } catch(err) { res.status(400).json({message: err}) }
 }
 
@@ -118,7 +130,7 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
 module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
     let id = req.params.id || {};    
     let deck_id = req.body.deck_id
-    console.log(deck_id)
+
     try{
         const voting = await Deck.updateOne(
             { _id: deck_id }, 

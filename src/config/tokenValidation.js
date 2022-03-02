@@ -18,6 +18,7 @@ module.exports = function(req, res, next){
         
         if (err){
             const expiredSession =  await Sessions.findOne({ user_id: req.params.id }); 
+            // cehck error
             if(expiredSession){
                 let sessionId = expiredSession._id.toString()
                 const deleteExpiredToken = await Sessions.findByIdAndRemove({ _id: sessionId }); 
