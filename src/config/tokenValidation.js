@@ -11,7 +11,7 @@ module.exports = function(req, res, next){
     // if the token doesn't exist, access to the protected toutes is forbidden
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if(!token) return res.status(401).json('Access Denied');
+    if(!token) return res.status(401).json({message: 'Error | Access Denied'});
 
     // user is not recognized or expired, ths access is not granted. SECRET_KEY dechiphers the token
     jwt.verify(token, process.env.SECRET_KEY, async (err, user) => {

@@ -11,7 +11,7 @@ router.get('/:id', verify, async function(req,res){
     await getCards(req,res);
 });
 
-router.get('/deck/:id', verify, async function(req,res){
+router.post('/deck/:id', verify, async function(req,res){
     await getCardsDeck(req,res);
 });
 
