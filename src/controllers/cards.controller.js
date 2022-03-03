@@ -137,6 +137,8 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
                     img_url: found.img_url,
                     question: found.question,
                     answer: found.answer,
+                    card_id: item.card_id,
+                    _id: item._id,
                     last_review: item.last_review,
                     review_lapse: item.review_lapse,
                     fail_counter: item.fail_counter,
