@@ -6,7 +6,7 @@ const jwt  = require('jsonwebtoken');
 const User  = require('../models/users.model');
 const Sessions  = require('../models/sessions.model');
 const Decks  = require('../models/decks.model');
-const UserDeckCard  = require('../models/user_deck_cards.model');
+const DeckCards  = require('../models/deck_card.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
@@ -35,7 +35,8 @@ module.exports.register = register = async (req, res, next) => {
     const newUser = await new User({
         username: req.body.username,
         email: req.body.email,
-        password: hashPassword
+        password: hashPassword,
+        deck_ids: []
     });
 
     // and send the user to the db
@@ -130,7 +131,7 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
     const userData = await Promise.all([
         Sessions.findOne({"user_id": id }),
             Decks.find({"creator_id": id }),
-            UserDeckCard.find({"user_id": id })
+            DeckCards.find({"user_id": id })
     ]);
 
     if(!userData){
@@ -145,7 +146,7 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
                 Sessions.deleteOne({ "user_id": id }),
                 User.deleteOne({_id: id}),
                 Decks.deleteMany({ "user_id": id }),
-                UserDeckCard.deleteMany({ "user_id": id }),
+                DeckCards.deleteMany({ "user_id": id }),
             ]);
             return res.status(200).json({message: "Deletion is successful"});
 

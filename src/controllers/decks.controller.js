@@ -1,6 +1,7 @@
 // const Sessions  = require('../models/sessions.model');
 const Deck  = require('../models/decks.model');
-const UserDeckCards  = require('../models/user_deck_cards.model');
+const DeckCards  = require('../models/deck_card.model');
+const User  = require('../models/users.model');
 const { deckCreationValidation }= require('../config/validation')
 
 
@@ -17,27 +18,29 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         creator_id: id,
         name: req.body.name,
         category: req.body.category,
-        sub_category: req.body.sub_category,
         private: true,
         description: null,
-        owners_id: [],
         deck_style_id: null,
         votes: []
     });
 
-    const userDeckCards = await new UserDeckCards({
-        user_id: id,
-        deck_id: deck._id,
-        cards: []
+    let deck_id = deck._id;
+
+    const deckCards = await new DeckCards({
+        deck_id: deck_id,
+        card_ids: []
     });
 
     try{
         Promise.all([
             await deck.save(),
-            await userDeckCards.save()
+            await deckCards.save(),
+            await User.updateOne({
+                $push: { deck_ids: deck_id }
+            })
         ])
-        .then( async ([ deck, user_deck_cards ]) => {
-            return res.status(200).json({deck: deck, userDeckCards: user_deck_cards});
+        .then( async ([ deck, deck_cards, ownership ]) => {
+            return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
         })
     } catch(err) { res.status(400).json({message: err}) }
 }
@@ -57,9 +60,13 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
 // RETRIEVE PERSONNAL DECKS
 module.exports.userDecks = userDecks = async (req, res, next) => {    
     try{
-        const decks =  await Deck.find({creator_id: req.params.id});
-        if(!decks) return res.status(404).json("You don't have any decks yet");
-        return res.json(decks);  
+        const user =  await User.find({_id: req.params.id});
+        if(!user) return res.status(404).json("You don't have any decks yet");
+
+        let deck_ids = user[0].deck_ids;
+        const decks =  await DeckCards.find({deck_id: deck_ids});
+
+        return res.status(200).json(decks);  
 
     } catch(err) { res.status(400).json({message: err}) }
 }
@@ -73,9 +80,21 @@ module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
     let deck_id = req.body.deck_id
 
     try{
-        const deleteDeck = await Deck.deleteOne({_id: deck_id, creator_id: id });
-        if(deleteDeck.deletedCount === 0) return res.status(404).json("Deck not found or not yours");
-        return res.status(200).json(deleteDeck);    
+        await Promise.all([
+            DeckCards.deleteOne({ deck_id: deck_id }),
+            Deck.deleteOne({_id: deck_id, creator_id: id }),
+            User.updateOne(
+                { _id: id },
+                { $pull: { deck_ids: deck_id }}
+            )
+        ])
+        .then( async ([ deck_cards, deck, user_update ]) => { 
+            if(deck_cards.deletedCount === 0) return res.status(404).json("DeckCards not found or not yours");
+            if(deck.deletedCount === 0) return res.status(404).json("Deck not found or not yours");
+            if(user_update.deletedCount === 0) return res.status(404).json("User or deck not found");
+
+            return res.status(200).json({deck: deck, deckCards: deck_cards, user_update: user_update});    
+        });
     } catch (err){res.status(500).json({ message:  err  })}
 }
 
@@ -94,8 +113,7 @@ module.exports.updateDeck = updateDeck =  async (req, res, next) => {
             { _id: deck_id, creator_id: id }, 
             { $set: { 
                 name: req.body.name, 
-                category: req.body.category, 
-                sub_category: req.body.sub_category, 
+                category: req.body.category,
                 last_update: currentDate
             }}
         );

@@ -18,10 +18,6 @@ const DeckSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    sub_category: {
-        type: String,
-        required: true,
-    },
     private: {
         type: Boolean,
         required: true,
@@ -39,12 +35,6 @@ const DeckSchema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    owners_id: [{
-        type: mongoose.ObjectId,
-        _id: {
-            required: false
-        },
-    }],
     deck_style_id: {
         type: mongoose.ObjectId,
         _id: {

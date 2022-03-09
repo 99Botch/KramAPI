@@ -7,19 +7,25 @@ const { createDeck, publicDecks, userDecks,
 router.post('/:id', verify, async function(req,res){
     await createDeck(req,res);
 });
+
 router.get("/repository", publicDecks);
+
 router.get('/:id', verify, async function(req,res){
     await userDecks(req,res);
 });
+
 router.delete('/:id', verify, async function(req,res){
     await deleteDecks(req,res);
 });
+
 router.put('/:id', verify, async function(req,res){
     await updateDeck(req,res);
 });
+
 router.put('/privacy/:id', verify, async function(req,res){
     await updatePrivacy(req,res);
 });
+
 router.put('/vote/:id', verify, async function(req,res){
     await updateDeckVote(req,res);
 });

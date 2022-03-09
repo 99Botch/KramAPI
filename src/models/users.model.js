@@ -30,6 +30,12 @@ const UserSchema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
+    deck_ids: [{
+        type: mongoose.ObjectId,
+        _id: {
+            required: false
+        },
+    }],
 });
 
 // export the schema as 'UserSchema' and all its information so that the controller can import it as 'Users'

@@ -90,9 +90,7 @@ module.exports.deckCreationValidation = deckCreationValidation = (data) => {
             .max(30)
             .required(),  
         category: Joi.string()
-            .required(),
-        sub_category: Joi.string()
-            .required(),
+            .required()
     });
 
     return schema.validate(data);

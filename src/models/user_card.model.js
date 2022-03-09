@@ -1,14 +1,8 @@
 // REFER T USERS MODEL
-const { array } = require('joi');
 const mongoose = require('mongoose');
-
 
 const UserDeckCardsSchema = mongoose.Schema({
     user_id: {
-        type: mongoose.ObjectId,
-        required: true,
-    },
-    deck_id: {
         type: mongoose.ObjectId,
         required: true,
     },
@@ -18,9 +12,6 @@ const UserDeckCardsSchema = mongoose.Schema({
         },
         last_review: {
             type: String,    
-            _id: {
-                required: false
-            },
         },
         review_lapse: {
             type: String,        
@@ -39,7 +30,10 @@ const UserDeckCardsSchema = mongoose.Schema({
             _id: {
                 required: false
             },
-        }
+        },
+        _id: {
+            required: false
+        },
     }]
 });
 
