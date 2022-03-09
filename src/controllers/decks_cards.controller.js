@@ -71,49 +71,42 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
         const getCards = await Cards.find({ '_id': { $in: card_ids } });
         const getUserCards = await UserCard.findOne({ "cards.card_id": { $in: card_ids } });
 
-        let UserDeck = {
+        let userDeck = {
             user_id: id,
             deck_id: deck.deck_id,
             cards: []
         }
 
-        //             last_review: item.last_review,
-        //             review_lapse: item.review_lapse,
-        //             fail_counter: item.fail_counter,
-        //             ease_factor: item.ease_factor,
-        //             is_new: item.is_new,
-        //             style_id: item.style_id
+
 
         getCards.forEach(item => {
-            console.log("1. " + item)
-            getUserCards.cards.forEach(user_card => {
-                console.log("1. " + item._id)
-                console.log("2. " + user_card.card_id)
-                if(user_card.card_id === item._id){
-                    console.log("2. " + user_card)
-
-                }
+            userDeck.cards.push({
+                card_id: item._id,
+                question: item.question,
+                answer: item.answer,
+                img_url: item.img_url
             })
+        });
 
+        let userCardsIds = getUserCards.cards
 
-        })
+        userDeck.cards.forEach(item => {
+            userCardsIds.forEach(element => {
+                if(item.card_id.toString() == element.card_id.toString()){
+                    let bite = {
+                        last_review: element.last_review,
+                        review_lapse: element.review_lapse,
+                        fail_counter: element.fail_counter,
+                        ease_factor: element.ease_factor,
+                        is_new: element.is_new,
+                        style_id: element.style_id
+                    }
+                    Object.assign(item, bite);
+                }
+            });
+        });
 
-        // let UserDeck = {
-        //     user_id: id,
-        //     deck_id: deck.deck_id,
-        //     cards: [
-        //         getCards.forEach(item => {
-        //             let card ={
-        //                 card_id: item._id,
-        //                 img_url: item.img_url,
-        //                 question: item.question,
-        //                 answer: item.answer,
-        //             }
-        //         })
-        //     ]
-        // }
-
-        return res.status(200).json({getCards: getCards, getUserCards: getUserCards, UserDeck: UserDeck});
+        return res.status(200).json({userDeck: userDeck});
         
     } catch(err) { return res.status(400).json({message: err}) }
 }
