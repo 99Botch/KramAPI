@@ -64,7 +64,7 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
         if(!user) return res.status(404).json("You don't have any decks yet");
 
         let deck_ids = user[0].deck_ids;
-        const decks =  await DeckCards.find({deck_id: deck_ids});
+        const decks =  await Deck.find({_id: deck_ids}).limit(20);
 
         return res.status(200).json(decks);  
 

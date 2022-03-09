@@ -1,7 +1,7 @@
 // REFER T USERS MODEL
 const mongoose = require('mongoose');
 
-const UserDeckCardsSchema = mongoose.Schema({
+const UserCardSchema = mongoose.Schema({
     user_id: {
         type: mongoose.ObjectId,
         required: true,
@@ -27,9 +27,6 @@ const UserDeckCardsSchema = mongoose.Schema({
         },
         style_id: {
             type: mongoose.ObjectId,
-            _id: {
-                required: false
-            },
         },
         _id: {
             required: false
@@ -37,4 +34,4 @@ const UserDeckCardsSchema = mongoose.Schema({
     }]
 });
 
-module.exports = mongoose.model('UserDeckCards', UserDeckCardsSchema);
+module.exports = mongoose.model('UserCard', UserCardSchema);
