@@ -40,12 +40,13 @@ module.exports.addCard = addCard = async (req, res, next) => {
                         { user_id: user_id }, 
                         { $push: { cards: [{
                             card_id: card_id,
-                            last_review: null,
-                            review_lapse: '15min',
+                            next_session: null,
+                            interval: null,
                             fail_counter: 0,
+                            old_ease_factor: null,
                             ease_factor: 2.5,
-                            is_new: true,
-                            style_id: null,
+                            success_streak: 0,
+                            style_id: null
                         }] }},
                         { upsert: true }
                     )
@@ -77,8 +78,6 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
             cards: []
         }
 
-
-
         getCards.forEach(item => {
             userDeck.cards.push({
                 card_id: item._id,
@@ -94,11 +93,12 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
             userCardsIds.forEach(element => {
                 if(item.card_id.toString() == element.card_id.toString()){
                     let bite = {
-                        last_review: element.last_review,
-                        review_lapse: element.review_lapse,
+                        next_session: element.next_session,
+                        interval: element.interval,
                         fail_counter: element.fail_counter,
+                        old_ease_factor: element.old_ease_factor,
                         ease_factor: element.ease_factor,
-                        is_new: element.is_new,
+                        success_streak: element.success_streak,
                         style_id: element.style_id
                     }
                     Object.assign(item, bite);

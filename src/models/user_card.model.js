@@ -10,20 +10,23 @@ const UserCardSchema = mongoose.Schema({
         card_id: {
             type: mongoose.ObjectId,
         },
-        last_review: {
+        next_session: {
             type: String,    
         },
-        review_lapse: {
+        interval: {
             type: String,        
         },
         fail_counter: {
             type: Number,
         },
+        old_ease_factor: {
+            type: Number,
+        },
         ease_factor: {
             type: Number,
         },
-        is_new: {
-            type: Boolean,
+        success_streak: {
+            type: Number,
         },
         style_id: {
             type: mongoose.ObjectId,
