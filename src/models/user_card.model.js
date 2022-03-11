@@ -14,7 +14,7 @@ const UserCardSchema = mongoose.Schema({
             type: String,    
         },
         interval: {
-            type: String,        
+            type: Number,        
         },
         fail_counter: {
             type: Number,
