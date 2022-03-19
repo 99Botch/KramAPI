@@ -36,6 +36,7 @@ module.exports.register = register = async (req, res, next) => {
         username: req.body.username,
         email: req.body.email,
         password: hashPassword,
+        profile_pic_url: null,
         deck_ids: []
     });
 
