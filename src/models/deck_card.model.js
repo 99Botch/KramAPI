@@ -6,6 +6,10 @@ const DeckCardsSchema = mongoose.Schema({
         type: mongoose.ObjectId,
         required: true,
     },
+    user_id: {
+        type: mongoose.ObjectId,
+        required: true,
+    },
     card_ids: [{
         type: mongoose.ObjectId,
         _id: {

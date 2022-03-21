@@ -7,6 +7,7 @@ const User  = require('../models/users.model');
 const Sessions  = require('../models/sessions.model');
 const Decks  = require('../models/decks.model');
 const DeckCards  = require('../models/deck_card.model');
+const UserCards  = require('../models/user_card.model');
 // import the function to check the validity of the data passed to the controller
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
@@ -148,6 +149,7 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
                 User.deleteOne({_id: id}),
                 Decks.deleteMany({ "user_id": id }),
                 DeckCards.deleteMany({ "user_id": id }),
+                UserCards.deleteMany({ "user_id": id }),
             ]);
             return res.status(200).json({message: "Deletion is successful"});
 

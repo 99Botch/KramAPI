@@ -28,6 +28,7 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
 
     const deckCards = await new DeckCards({
         deck_id: deck_id,
+        user_id: id,
         card_ids: []
     });
 
@@ -35,9 +36,10 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         Promise.all([
             await deck.save(),
             await deckCards.save(),
-            await User.updateOne({
-                $push: { deck_ids: deck_id }
-            })
+            await User.updateOne(
+                {_id: id},
+                {$push: { deck_ids: deck_id} }
+            )
         ])
         .then( async ([ deck, deck_cards, ownership ]) => {
             return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
