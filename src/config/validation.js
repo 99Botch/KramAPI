@@ -71,11 +71,15 @@ module.exports.updatePicValidation = updatePicValidation = (data) => {
 module.exports.updatePasswordValidation = updatePasswordValidation = (data) => {
     // refer to registerValidation
     const schema = Joi.object({
-        password: Joi.string()
+        new_password: Joi.string()
             .pattern(new RegExp(`${ REG_PATTERN }`))
             .required(),
         // repeat password must match the first one
-        repeat_password: Joi.ref('password'),
+        repeat_password: Joi.ref('new_password'),
+        old_password: Joi.string()
+            .required(),
+        current_password: Joi.string()
+            .required(),
     });
 
     return schema.validate(data);   

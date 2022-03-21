@@ -246,13 +246,16 @@ module.exports.updateUserPassword = updateUserPassword = async (req, res, next) 
         // first step consists to ccheck whether the user tries to update his profile or not
         let id = req.params.id || {};
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-        // if (id != req.user._id) return res.status(401).json("Ids aren't matching");
        
         // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
         const { error } = await updatePasswordValidation(req.body);
         if(error) return res.status(400).json(error.details[0]);
 
-        const hashPassword = await bcrypt.hash(req.body.password, 10);
+        const verified = bcrypt.compareSync(req.body.old_password, req.body.current_password);
+
+        if(!verified) return res.status(400).json('Old password is not matching database');
+
+        const hashPassword = await bcrypt.hash(req.body.new_password, 10);
 
         const updatePassword = await User.updateOne(
             { _id: id }, 

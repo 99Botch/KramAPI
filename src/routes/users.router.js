@@ -23,10 +23,9 @@ line 25, where the method will fetch a user based on its id.
 // USERS URI
 router.post("/register", register);
 router.get("/", getUsers);
-router.get("/:id", getUser);
-// router.get('/:id', verify, async function(req,res){
-//     await getUser(req,res);
-// });
+router.get('/:id', verify, async function(req,res){
+    await getUser(req,res);
+});
 router.put('/:id', verify, async function(req,res){
     await updateUser(req,res);
 });
