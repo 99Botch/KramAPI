@@ -14,7 +14,7 @@ router.get('/:id', verify, async function(req,res){
     await userDecks(req,res);
 });
 
-router.delete('/:id', verify, async function(req,res){
+router.delete('/:id/:deck_id', verify, async function(req,res){
     await deleteDecks(req,res);
 });
 

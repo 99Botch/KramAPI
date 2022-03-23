@@ -76,10 +76,8 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
 
 // DELETE A DECK
 module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
-    let id = req.params.id || {};
+    let [id, deck_id] = [req.params.id, req.params.deck_id] || {}
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-
-    let deck_id = req.body.deck_id
 
     try{
         await Promise.all([
