@@ -4,10 +4,6 @@ const mongoose = require('mongoose');
 
 
 const DeckSchema = mongoose.Schema({
-    creator_id: {
-        type: mongoose.ObjectId,
-        required: true,
-    },
     name: {
         type: String,
         required: true,

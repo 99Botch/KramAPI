@@ -15,7 +15,6 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
     if(error) return res.status(400).json(error.details[0]);
 
     const deck = await new Deck({
-        creator_id: id,
         name: req.body.name,
         category: req.body.category,
         private: true,
