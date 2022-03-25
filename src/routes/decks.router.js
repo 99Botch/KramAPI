@@ -1,7 +1,7 @@
 // REFER TO USERS.ROUTER
 const router = require('express').Router();
 const verify  = require('../config/tokenValidation'); 
-const { createDeck, publicDecks, userDecks, 
+const { createDeck, publicDecks, userDecks, addDeck,
     deleteDecks, updateDeck, updatePrivacy, updateDeckVote}= require('../controllers/decks.controller');
 
 router.post('/:id', verify, async function(req,res){
@@ -26,6 +26,10 @@ router.put('/:id', verify, async function(req,res){
 
 router.put('/privacy/:id', verify, async function(req,res){
     await updatePrivacy(req,res);
+});
+
+router.put('/add/:id', verify, async function(req,res){
+    await addDeck(req,res);
 });
 
 router.put('/vote/:id', verify, async function(req,res){

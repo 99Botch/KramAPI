@@ -72,10 +72,61 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
+// RETRIEVE PERSONNAL DECKS
+module.exports.addDeck = addDeck = async (req, res, next) => {    
+    try{
+        let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
+        if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+        const match = req.body.ids.find(element => {
+            return element === deck_id
+        });
+        if (match) return res.status(200).json({retrieved: match});
+        
+        await Promise.all([
+            Deck.findById({_id: deck_id}),
+            DeckCards.findOne({ deck_id: deck_id }),
+        ])
+        .then(async ([_deck, _deckCards]) =>{
+
+            // console.log(deckCards.card_ids)
+            
+            // await Promise.all([
+            // ])
+
+            const deck = await new Deck({
+                name: _deck.name,
+                category: _deck.category,
+                private: true,
+                description: null,
+                deck_style_id: null,
+                votes: []
+            });
+        
+            const deckCards = await new DeckCards({
+                deck_id: deck._id,
+                user_id: id,
+                card_ids: _deckCards.card_ids
+            });
+
+            Promise.all([
+                await User.updateOne({ _id: id }, { $push: { deck_ids: [ deck._id ] }}, { upsert: true }),
+                await deck.save(),
+                await deckCards.save(),
+            ])
+            .then( async ([ deck, deck_cards, ownership ]) => {
+                return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
+            })
+
+        })
+        
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
 
 // DELETE A DECK
 module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
-    let [id, deck_id] = [req.params.id, req.params.deck_id] || {}
+    let [id, deck_id] = [req.params.id, req.params.deck_id] || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
     try{
