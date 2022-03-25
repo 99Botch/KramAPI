@@ -8,7 +8,9 @@ router.post('/:id', verify, async function(req,res){
     await createDeck(req,res);
 });
 
-router.get("/repository", publicDecks);
+router.get('/repository/:id', verify, async function(req,res){
+    await publicDecks(req,res);
+});
 
 router.get('/:id', verify, async function(req,res){
     await userDecks(req,res);
