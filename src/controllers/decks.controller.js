@@ -20,7 +20,8 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         private: true,
         description: null,
         deck_style_id: null,
-        votes: []
+        votes: 0,
+        voters_id: []
     });
 
     let deck_id = deck._id;
@@ -88,12 +89,6 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
             DeckCards.findOne({ deck_id: deck_id }),
         ])
         .then(async ([_deck, _deckCards]) =>{
-
-            // console.log(deckCards.card_ids)
-            
-            // await Promise.all([
-            // ])
-
             const deck = await new Deck({
                 name: _deck.name,
                 category: _deck.category,
@@ -196,20 +191,31 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
 
 // UPDATE DECK VOTES
 module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
-    let id = req.params.id || {};    
-    let deck_id = req.body.deck_id
+    let [id, deck_id, votes] = [req.params.id, req.body.deck_id, req.body.votes] || {};
+    (req.body.vote == 'up') ? votes += 1 : votes -= 1;
 
     try{
-        const voting = await Deck.updateOne(
-            { _id: deck_id }, 
-            { $push: { votes: [{ 
-                voter_id: id,
-                vote: req.body.vote
-                }]
-            }},
-            {upsert: true}
-        );
-        if(!voting) return res.status(404).json("Deck not found or not yours");
-        return res.status(200).json(voting);    
+        await Promise.all([
+            await Deck.updateOne(
+                { _id: deck_id }, { $pull: { voters: { voter_id: id }}},
+                { upsert: true }
+            ),
+            await Deck.updateOne(
+                { _id: deck_id }, { $set: { votes: votes },
+                    $push: { 
+                        voters: {
+                           voter_id: id,
+                           vote: req.body.vote 
+                        },
+                    }
+                },
+                { upsert: true }
+            )
+        ]).then(voted =>{
+            if(!voted) return res.status(404).json("Deck not found or not yours");
+            return res.status(200).json(voted);    
+        })
+
+
     } catch (err){res.status(500).json({ message: "" + err  })}
 }

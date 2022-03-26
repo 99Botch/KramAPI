@@ -1,7 +1,5 @@
 // REFER T USERS MODEL
-const { array } = require('joi');
 const mongoose = require('mongoose');
-
 
 const DeckSchema = mongoose.Schema({
     name: {
@@ -37,17 +35,19 @@ const DeckSchema = mongoose.Schema({
             required: false
         },
     },
-    votes: [{      
+    votes: {
+        type: Number
+    },
+    voters: [{
         voter_id: {
             type: mongoose.ObjectId,
+            required: true,
         },
-        vote: {
+        vote: { 
             type: String
         },
-        _id: {
-            required: false
-        },
-    }]
+        _id: { required: false },
+    }],
 });
 
 
