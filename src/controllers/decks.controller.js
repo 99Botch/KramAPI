@@ -21,7 +21,10 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
         description: null,
         deck_style_id: null,
         votes: 0,
-        voters_id: []
+        voters: [{
+            voter_id: id,
+            vote: 'none'
+        }]
     });
 
     let deck_id = deck._id;
@@ -73,7 +76,7 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
-// RETRIEVE PERSONNAL DECKS
+// ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
 module.exports.addDeck = addDeck = async (req, res, next) => {    
     try{
         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
@@ -95,7 +98,8 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
                 private: true,
                 description: null,
                 deck_style_id: null,
-                votes: []
+                votes: 0,
+                voters: []
             });
         
             const deckCards = await new DeckCards({
@@ -173,11 +177,11 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
     
-    let deck_id = req.body.deck_id
+    let deck_id = req.body.deck_id;
     
     try{
         const switchPrivacy = await Deck.updateOne(
-            { _id: deck_id, creator_id: id }, 
+            { _id: deck_id }, 
             { $set: { 
                 private: req.body.private,
                 description: req.body.description
@@ -192,7 +196,6 @@ module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
 // UPDATE DECK VOTES
 module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
     let [id, deck_id, votes] = [req.params.id, req.body.deck_id, req.body.votes] || {};
-    (req.body.vote == 'up') ? votes += 1 : votes -= 1;
 
     try{
         await Promise.all([

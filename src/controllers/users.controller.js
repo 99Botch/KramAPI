@@ -131,14 +131,13 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
 
     const userData = await Promise.all([
-        Sessions.findOne({"user_id": id }),
-            Decks.find({"creator_id": id }),
+            User.findById({"_id": id }),
+            Sessions.findOne({"user_id": id }),
             DeckCards.find({"user_id": id })
     ]);
 
     if(!userData){
         try{
-            // _id act as the identifier for the db for deletion
             const removeUser = await User.deleteOne({_id: id}); 
             return res.status(200).json(removeUser); 
         } catch(err) { res.json({ message: err }) }
@@ -147,7 +146,7 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
             Promise.all([
                 Sessions.deleteOne({ "user_id": id }),
                 User.deleteOne({_id: id}),
-                Decks.deleteMany({ "user_id": id }),
+                Decks.deleteMany({ "_id": { $in: userData[0].deck_ids } },{ multi: true }),
                 DeckCards.deleteMany({ "user_id": id }),
                 UserCards.deleteMany({ "user_id": id }),
             ]);
