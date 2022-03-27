@@ -76,6 +76,33 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
+// RETRIEVE PERSONNAL DECKS
+module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {    
+    try{
+        const ids =  await User.findById({ _id: req.params.id }, {  _id : 0, deck_ids: 1 });
+        if(!ids) return res.status(404).json("Profile do not exists");
+
+        Promise.all([
+            await Deck.find({ _id: { $in: ids.deck_ids }}, {  _id : 0, name: 1, category: 1 }),
+            await DeckCards.find({ user_id: req.params.id }, {  _id : 0 })
+        ])
+        .then(async ([ decks, deck_cards ]) => {
+            let i =0;
+            let arr = [];
+            ids.deck_ids.forEach(id => {
+                let deck  = { ...decks[i]._doc, ...deck_cards[i]._doc, deck_id: id };    
+                i++;
+                arr.push(deck);
+            })
+
+            return res.status(200).json(arr);   
+        })
+        .catch((err) => { res.status(404).json({message: err, error: 'Deck(s) not retrieved or do no exists yet!'})})
+
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
+
 // ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
 module.exports.addDeck = addDeck = async (req, res, next) => {    
     try{
