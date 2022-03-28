@@ -76,6 +76,30 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
+module.exports.userDecks = userDecks = async (req, res, next) => {    
+    try{
+        const ids =  await User.findOne({_id: req.params.id}, {  _id : 0, deck_ids: 1 });
+        if(!ids) return res.status(404).json("You don't have any decks yet");
+        
+        Promise.all([
+            await Deck.find({_id: {$in: ids.deck_ids}}),  
+            await DeckCards.find({deck_id: {$in: ids.deck_ids}}, {  _id : 0, card_ids: 1 })
+        ])
+        .then(async ([ decks, deck_cards ]) => {
+            let i = 0;
+            deck_cards.forEach(elem => {
+                let card_count = {card_count: elem.card_ids.length};
+                decks[i] = { ...decks[i]._doc, ...card_count};    
+                console.log(decks[i])
+                i++;
+            });
+            return res.status(200).json(decks);  
+        })
+        .catch((err) => { res.status(404).json({message: err, error: 'Deck(s) not retrieved or do no exists yet!'})})
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
+
 // RETRIEVE PERSONNAL DECKS
 module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {    
     try{

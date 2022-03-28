@@ -3,7 +3,7 @@ const router = require('express').Router();
 const verify  = require('../config/tokenValidation'); 
 const { createCard, getCards, deleteCard }= require('../controllers/cards.controller');
 const { addCard, deleteDeckCards, getCardsDeck }= require('../controllers/decks_cards.controller');
-const { updateCardDetails, deleteUserCards }= require('../controllers/users_cards.controller');
+const { getUserCardsDetails, updateCardDetails, deleteUserCards }= require('../controllers/users_cards.controller');
 
 
 // CARDS_ONLY --------------------------------------------------------------------------------------------------------------------
@@ -35,6 +35,9 @@ router.post('/deck/:id', verify, async function(req,res){
 
 
 // CARD_USER --------------------------------------------------------------------------------------------------------------------
+router.get('/user/:id', verify, async function(req,res){
+    await getUserCardsDetails(req,res);
+});
 router.put('/user/:id', verify, async function(req,res){
     await deleteUserCards(req,res);
 });

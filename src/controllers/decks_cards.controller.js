@@ -31,7 +31,7 @@ module.exports.addCard = addCard = async (req, res, next) => {
 
                 if(deck_card.modifiedCount == 1){
                     const user_card = await UserCard.findOne(
-                        { $and: [{ user_id: user_id }, { 'cards': { $elemMatch: { card_id: card_id } } }]}                
+                        { $and: [{ user_id: user_id }, { 'cards': { $elemMatch: { card_id: card_id } } }]}
                     )
                     
                     if(user_card) return res.status(200).json(deck_card);
@@ -70,7 +70,7 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
         
         let card_ids = deck.card_ids;
         const getCards = await Cards.find({ '_id': { $in: card_ids } });
-        const getUserCards = await UserCard.findOne({ "cards.card_id": { $in: card_ids } });
+        const getUserCards = await UserCard.findOne({  user_id: id });
 
         let userDeck = {
             user_id: id,

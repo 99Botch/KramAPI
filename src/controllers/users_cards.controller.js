@@ -3,6 +3,16 @@ const UserCard  = require('../models/user_card.model');
 
 
 // UPDATE DECK CARD REVIEW LAPSE
+module.exports.getUserCardsDetails = getUserCardsDetails =  async (req, res, next) => {
+    let id = req.params.id || {};
+    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+    try{
+        const user_cards = await UserCard.findOne( { user_id: id })
+        return res.status(200).json(user_cards) 
+    } catch (err){  return res.status(500).json('No cards yet!')}
+}
+
 module.exports.updateCardDetails = updateCardDetails =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
