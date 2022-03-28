@@ -63,18 +63,6 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
 
 
 // RETRIEVE PERSONNAL DECKS
-module.exports.userDecks = userDecks = async (req, res, next) => {    
-    try{
-        const user =  await User.find({_id: req.params.id});
-        if(!user) return res.status(404).json("You don't have any decks yet");
-
-        let deck_ids = user[0].deck_ids;
-        const decks =  await Deck.find({_id: deck_ids});
-
-        return res.status(200).json(decks);  
-
-    } catch(err) { res.status(400).json({message: err}) }
-}
 
 module.exports.userDecks = userDecks = async (req, res, next) => {    
     try{
@@ -89,8 +77,7 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
             let i = 0;
             deck_cards.forEach(elem => {
                 let card_count = {card_count: elem.card_ids.length};
-                decks[i] = { ...decks[i]._doc, ...card_count};    
-                console.log(decks[i])
+                decks[i] = { ...decks[i]._doc, ...card_count};
                 i++;
             });
             return res.status(200).json(decks);  
