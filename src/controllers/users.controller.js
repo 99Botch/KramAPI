@@ -12,6 +12,15 @@ const UserCards  = require('../models/user_card.model');
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
 // const { prependOnceListener } = require('../models/users.model');
 
+const cloudinary = require("cloudinary");
+require('dotenv').config();
+
+cloudinary.config({
+    cloud_name: process.env.CLOUD_NAME,
+    api_key: process.env.API_KEY,
+    api_secret: process.env.API_SECRET
+});
+
 
 // REGISTER A NEW PROFILE
 module.exports.register = register = async (req, res, next) => {
@@ -228,10 +237,23 @@ module.exports.updateUserPic = updateUserPic = async (req, res, next) => {
         // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
         const { error } = await updatePicValidation(req.body);
         if(error) return res.status(400).json(error.details[0]);
+        
+        let  url_cloudinary;
+        //https://cloudinary.com/documentation/upload_images
+        cloudinary.uploader.upload(req.body.profile_pic_url, result => {
+
+            if (result.public_id) {
+                console.log(result.url)
+                res.writeHead(200, { 'content-type': 'text/plain' });
+                res.write('received upload:\n\n');
+                res.end(util.inspect({ fields: fields, files: files }));
+            }
+        });
+
 
         const updatePic = await User.updateOne(
             { _id: id }, 
-            { $set: { profile_pic_url: req.body.profile_pic_url }},
+            { $set: { profile_pic_url: url_cloudinary }},
             { upsert: true }
         );
 
