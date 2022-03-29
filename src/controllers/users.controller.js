@@ -238,26 +238,19 @@ module.exports.updateUserPic = updateUserPic = async (req, res, next) => {
         const { error } = await updatePicValidation(req.body);
         if(error) return res.status(400).json(error.details[0]);
         
-        let  url_cloudinary;
-        //https://cloudinary.com/documentation/upload_images
         cloudinary.uploader.upload(req.body.profile_pic_url, result => {
 
-            if (result.public_id) {
-                console.log(result.url)
-                res.writeHead(200, { 'content-type': 'text/plain' });
-                res.write('received upload:\n\n');
-                res.end(util.inspect({ fields: fields, files: files }));
+            (result.public_id) ? uploadUrl(result.url) : res.status(400).json('Error | image upload failure');
+
+            async function uploadUrl(_url){
+                const updatePic = await User.updateOne(
+                    { _id: id }, 
+                    { $set: { profile_pic_url: _url }},
+                    { upsert: true }
+                );
+                return res.status(200).json(updatePic);
             }
         });
-
-
-        const updatePic = await User.updateOne(
-            { _id: id }, 
-            { $set: { profile_pic_url: url_cloudinary }},
-            { upsert: true }
-        );
-
-        return res.status(200).json(updatePic);
 
     } catch(err) { res.status(400).json({message: err}) }
 }
