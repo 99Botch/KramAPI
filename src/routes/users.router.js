@@ -3,7 +3,8 @@ const router = require('express').Router();
 // import the function to check the validity of the tokens
 const verify  = require('../config/tokenValidation'); 
 // import UsersController from '../controllers/users.controller'
-const { register, login, getUsers, getUser, updateUser, deleteUser, logout, getSession, updateUserPic, updateUserPassword }= require('../controllers/users.controller');
+const { register, login, getUsers, getUser, updateUser, deleteUser, getUserPic,
+    logout, getSession, updateUserPic, updateUserPassword }= require('../controllers/users.controller');
 // const { prependOnceListener } = require('../models/users.model');
 
 /* Each URI is unique and refers to a certain function. For example, if the URI /users/register is triggered, then the application knows that the request is a post method and the response
@@ -25,6 +26,9 @@ router.post("/register", register);
 router.get("/", getUsers);
 router.get('/:id', verify, async function(req,res){
     await getUser(req,res);
+});
+router.get('/pic/:id', verify, async function(req,res){
+    await getUserPic(req,res);
 });
 router.put('/:id', verify, async function(req,res){
     await updateUser(req,res);

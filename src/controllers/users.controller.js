@@ -8,9 +8,7 @@ const Sessions  = require('../models/sessions.model');
 const Decks  = require('../models/decks.model');
 const DeckCards  = require('../models/deck_card.model');
 const UserCards  = require('../models/user_card.model');
-// import the function to check the validity of the data passed to the controller
-const { registerValidation, loginValidation, updateValidation }= require('../config/validation')
-// const { prependOnceListener } = require('../models/users.model');
+const { registerValidation, loginValidation, updateValidation }= require('../config/validation');
 
 const cloudinary = require("cloudinary");
 require('dotenv').config();
@@ -18,7 +16,7 @@ require('dotenv').config();
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.API_KEY,
-    api_secret: process.env.API_SECRET
+    api_secret: process.env.API_SECRET,
 });
 
 
@@ -133,6 +131,17 @@ module.exports.getUser = getUser = async (req, res, next) => {
 }
 
 
+// GET USER PIC
+module.exports.getUserPic = getUserPic = async (req, res, next) => {
+    try{
+        const user =  await User.findById(req.params.id, {_id: 0, profile_pic_url: 1});
+        if(!user) return res.status(404).json("user not found");
+        return res.status(200).json(user);  
+
+    } catch(err) { return res.status(400).json({message: err}) }
+}
+
+
 // DELETE USER PROFILE
 module.exports.deleteUser = deleteUser =  async (req, res, next) => {
     // first, API checks if the user's id matches the request's id, if so .deleteOne deletes the User
@@ -233,24 +242,29 @@ module.exports.updateUserPic = updateUserPic = async (req, res, next) => {
         // first step consists to ccheck whether the user tries to update his profile or not
         let id = req.params.id || {};
         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-       
-        // for updateValidation refer to ../config/validation -> if the format attributes format aren't respected, API throws an error
-        const { error } = await updatePicValidation(req.body);
-        if(error) return res.status(400).json(error.details[0]);
-        
-        cloudinary.uploader.upload(req.body.profile_pic_url, result => {
 
-            (result.public_id) ? uploadUrl(result.url) : res.status(400).json('Error | image upload failure');
+        try{
+            const user =  await User.findById(req.params.id, {_id: 0, profile_pic_url: 1});
+            if(!user) return res.status(404).json("user not found");
 
-            async function uploadUrl(_url){
-                const updatePic = await User.updateOne(
-                    { _id: id }, 
-                    { $set: { profile_pic_url: _url }},
-                    { upsert: true }
-                );
-                return res.status(200).json(updatePic);
+            if(user.profile_pic_url) {
+                let final = user.profile_pic_url.substr(user.profile_pic_url.lastIndexOf('/') + 1);
+                let result = final.indexOf('.');
+                final = final.slice(0, result)
+    
+                cloudinary.uploader.destroy(final, function(result) { 
+                    console.log(result) 
+                });
             }
-        });
+
+            const updatePic = await User.updateOne(
+                { _id: id }, 
+                { $set: { profile_pic_url: req.body.profile_pic_url }},
+                { upsert: true }
+            );
+            return res.status(200).json(updatePic);        
+
+        } catch(err) { return res.status(400).json({message: err}) }
 
     } catch(err) { res.status(400).json({message: err}) }
 }
