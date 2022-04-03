@@ -25,11 +25,26 @@ module.exports.createCard = createCard = async (req, res, next) => {
 
 }
 
+
 // RETRIEVE ALL CARDS
 module.exports.getCards = getCards = async (req, res, next) => {    
     try{
-        const cards = await Card.find().limit(20);
+        const cards = await Card.find();
         if(!cards) return res.status(404).json("No public decks in the db");
+        return res.json(cards);
+        
+    } catch(err) { return res.status(400).json({message: err}) }
+}
+
+
+// SEARCH FOR CARDS
+module.exports.searchCards = searchCards = async (req, res, next) => {    
+    try{
+        const cards = await Card.find(
+            { $or: [{ question: { $regex : new RegExp(req.params.text.split('+').join(' '), "i") } }, { answer: { $regex : new RegExp(req.params.text.split('+').join(' '), "i") } }]}
+        );
+        if(!cards) return res.status(404).json("No public decks in the db");
+        
         return res.json(cards);
         
     } catch(err) { return res.status(400).json({message: err}) }

@@ -61,6 +61,16 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
+// RETRIEVE ALL DECKS THAT ARE PUBLIC
+module.exports.searchPublicDecks = searchPublicDecks = async (req, res, next) => {    
+    try{
+        const decks = await Deck.find({ private: false, name: { $regex : new RegExp(req.params.name.split('+').join(' '), "i") } });
+        if(!decks) return res.status(404).json("No public decks in the db");
+        return res.json(decks);
+        
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
 
 // RETRIEVE PERSONNAL DECKS
 
@@ -83,6 +93,31 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
             return res.status(200).json(decks);  
         })
         .catch((err) => { res.status(404).json({message: err, error: 'Deck(s) not retrieved or do no exists yet!'})})
+    } catch(err) { res.status(400).json({message: err}) }
+}
+
+module.exports.searchDecks = searchDecks = async (req, res, next) => {
+    try{
+        const user =  await User.findOne({_id: req.params.id});
+        if(!user) return res.status(404).json("You don't have any decks yet");
+
+        const decks = await Deck.find({ _id: {$in: user.deck_ids}, name: { $regex : new RegExp(req.params.name.split('+').join(' '), "i") } });
+
+        let ids = [];
+        decks.forEach(elem => ids.push(elem._id) );
+        const deck_cards = await DeckCards.find({deck_id: {$in: ids}}, {  _id : 0, card_ids: 1 })
+        
+        if(!decks || !deck_cards) return res.status(404).json("Decks not retrieved");
+        
+        let i = 0;
+        deck_cards.forEach(elem => {
+            let card_count = {card_count: elem.card_ids.length};
+            decks[i] = { ...decks[i]._doc, ...card_count};
+            i++;
+        });
+
+        return res.status(200).json(decks);  
+
     } catch(err) { res.status(400).json({message: err}) }
 }
 
