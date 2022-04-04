@@ -5,6 +5,16 @@ const { createCard, getCards,searchCards, deleteCard }= require('../controllers/
 const { addCard, deleteDeckCards, getCardsDeck }= require('../controllers/decks_cards.controller');
 const { getUserCardsDetails, updateCardDetails, deleteUserCards }= require('../controllers/users_cards.controller');
 
+// CARD_USER --------------------------------------------------------------------------------------------------------------------
+router.get('/user/:id', verify, async function(req,res){
+    await getUserCardsDetails(req,res);
+});
+router.put('/user/:id', verify, async function(req,res){
+    await deleteUserCards(req,res);
+});
+router.put('/review-session/:id', verify, async function(req,res){
+    await updateCardDetails(req,res);
+});
 
 // CARDS_ONLY --------------------------------------------------------------------------------------------------------------------
 router.post('/:id', verify, async function(req,res){
@@ -38,15 +48,6 @@ router.post('/deck/:id', verify, async function(req,res){
 });
 
 
-// CARD_USER --------------------------------------------------------------------------------------------------------------------
-router.get('/user/:id', verify, async function(req,res){
-    await getUserCardsDetails(req,res);
-});
-router.put('/user/:id', verify, async function(req,res){
-    await deleteUserCards(req,res);
-});
-router.put('/review-session/:id', verify, async function(req,res){
-    await updateCardDetails(req,res);
-});
+
 
 module.exports = router;
