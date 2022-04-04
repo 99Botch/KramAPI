@@ -20,13 +20,14 @@ router.get('/:id', verify, async function(req,res){
     await userDecks(req,res);
 });
 
+router.get('/table/:id', verify, async function(req,res){
+    await getDeckCnt(req,res);
+});
+
 router.get('/:name/:id', verify, async function(req,res){
     await searchDecks(req,res);
 });
 
-router.get('/table/:id', verify, async function(req,res){
-    await getDeckCnt(req,res);
-});
 
 router.delete('/:id/:deck_id', verify, async function(req,res){
     await deleteDecks(req,res);
