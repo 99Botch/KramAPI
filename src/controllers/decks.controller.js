@@ -1,6 +1,7 @@
 // const Sessions  = require('../models/sessions.model');
 const Deck  = require('../models/decks.model');
 const DeckCards  = require('../models/deck_card.model');
+const UserCards  = require('../models/user_card.model');
 const User  = require('../models/users.model');
 const { deckCreationValidation }= require('../config/validation')
 
@@ -150,6 +151,53 @@ module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {
 
 
 // ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
+// module.exports.addDeck = addDeck = async (req, res, next) => {    
+//     try{
+//         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
+//         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+
+//         const match = req.body.ids.find(element => {
+//             return element === deck_id
+//         });
+//         if (match) return res.status(200).json({retrieved: match});
+        
+//         await Promise.all([
+//             Deck.findById({_id: deck_id}),
+//             DeckCards.findOne({ deck_id: deck_id }),
+//         ])
+//         .then(async ([_deck, _deckCards]) =>{
+//             const deck = await new Deck({
+//                 name: _deck.name,
+//                 category: _deck.category,
+//                 private: true,
+//                 description: null,
+//                 deck_style_id: null,
+//                 votes: 0,
+//                 voters: []
+//             });
+        
+//             const deckCards = await new DeckCards({
+//                 deck_id: deck._id,
+//                 user_id: id,
+//                 card_ids: _deckCards.card_ids
+//             });
+
+//             Promise.all([
+//                 await User.updateOne({ _id: id }, { $push: { deck_ids: [ deck._id ] }}, { upsert: true }),
+//                 await deck.save(),
+//                 await deckCards.save(),
+//             ])
+//             .then( async ([ deck, deck_cards, ownership ]) => {
+//                 return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
+//             })
+
+//         })
+        
+//     } catch(err) { res.status(400).json({message: err}) }
+// }
+
+
+// // ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
 module.exports.addDeck = addDeck = async (req, res, next) => {    
     try{
         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
@@ -181,10 +229,39 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
                 card_ids: _deckCards.card_ids
             });
 
+            const existing_ids = await UserCards.find({user_id: id}).distinct('cards.card_id');
+
+            existing_ids.forEach(elem =>{
+                _deckCards.card_ids.find(item =>{
+                    if (item.toString() == elem.toString()) {
+                        let id = item.toString();
+                        let index = _deckCards.card_ids.indexOf(id);
+                        _deckCards.card_ids.splice(index, 1);
+                    }
+                })
+            })
+
+            const user_cards = [];
+
+            _deckCards.card_ids.forEach(elem =>{
+                let item = {
+                    card_id: elem.toString(),
+                    next_session: null,
+                    interval: null,
+                    fail_counter: 0,
+                    old_ease_factor: null,
+                    ease_factor: 2.5,
+                    success_streak: 0,
+                    style_id: null
+                }
+                user_cards.push(item)
+            })
+
             Promise.all([
                 await User.updateOne({ _id: id }, { $push: { deck_ids: [ deck._id ] }}, { upsert: true }),
                 await deck.save(),
                 await deckCards.save(),
+                await UserCards.updateOne({ user_id: id }, { $push: { cards: user_cards }}, { upsert: true }),
             ])
             .then( async ([ deck, deck_cards, ownership ]) => {
                 return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
@@ -194,6 +271,7 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
         
     } catch(err) { res.status(400).json({message: err}) }
 }
+
 
 
 // DELETE A DECK
