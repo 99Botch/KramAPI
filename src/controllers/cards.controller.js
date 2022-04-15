@@ -15,9 +15,6 @@ module.exports.createCard = createCard = async (req, res, next) => {
         img_url: (!req.body.img_url) ? null : req.body.img_url
     });
 
-    const cardUniqueness = await Card.findOne({ question: req.body.question });
-    if(cardUniqueness) return res.status(404).json("Error | Don't duplicate cards !");
-
     try{
         const savedCard = await newCard.save();
         return res.status(200).json(savedCard);
