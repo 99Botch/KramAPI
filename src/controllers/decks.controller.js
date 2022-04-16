@@ -310,36 +310,18 @@ module.exports.updateDeck = updateDeck =  async (req, res, next) => {
         let currentDate = new Date();
         
         const updateDeck = await Deck.updateOne(
-            { _id: deck_id, creator_id: id }, 
+            { _id: deck_id }, 
             { $set: { 
                 name: req.body.name, 
                 category: req.body.category,
+                description: req.body.description,
+                private: req.body.private,
                 last_update: currentDate
             }}
         );
 
         if(!updateDeck) return res.status(404).json("Deck not found or not yours");
         return res.status(200).json(updateDeck);    
-    } catch (err){res.status(500).json({ message: "" + err  })}
-}
-
-// UPDATE DECK PRIVACY
-module.exports.updatePrivacy = updatePrivacy =  async (req, res, next) => {
-    let id = req.params.id || {};
-    if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-    
-    let deck_id = req.body.deck_id;
-    
-    try{
-        const switchPrivacy = await Deck.updateOne(
-            { _id: deck_id }, 
-            { $set: { 
-                private: req.body.private,
-                description: req.body.description
-            }}
-        );
-        if(switchPrivacy.modifiedCount == 0) return res.status(404).json("Deck not found or not yours");
-        return res.status(200).json(switchPrivacy);    
     } catch (err){res.status(500).json({ message: "" + err  })}
 }
 
