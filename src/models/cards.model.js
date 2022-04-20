@@ -20,7 +20,16 @@ const CardSchema = mongoose.Schema({
     },
     fail_counter: {
         type: Number
-    }
+    },
+    next_session: {
+        type: String
+    },
+    interval: {
+        type: Number
+    },
+    success_streak: {
+        type: Number
+    },
 });
 
 

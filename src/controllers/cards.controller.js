@@ -33,14 +33,18 @@ module.exports.getCards = getCards = async (req, res, next) => {
             await Card.find({}, { creator_id: 0 }),
             await UserCards.findOne(
                 { user_id: id },
-                { "cards.card_id": 1, "cards.fail_counter": 1 }
+                { "cards.card_id": 1, "cards.fail_counter": 1, "cards.next_session": 1, "cards.interval": 1, "cards.success_streak": 1 }
             ),
         ])
             .then(async ([cards, user_cards]) => {
                 user_cards.cards.forEach((item) => {
                     cards.find((elem) => {
-                        if (item.card_id.toString() == elem._id.toString())
+                        if (item.card_id.toString() == elem._id.toString()){
                             elem.fail_counter = item.fail_counter;
+                            elem.next_session = item.next_session;
+                            elem.interval = item.interval;
+                            elem.success_streak = item.success_streak;
+                        }
                     });
                 });
 
