@@ -1,5 +1,4 @@
 // REFER T USERS MODEL
-const { array } = require('joi');
 const mongoose = require('mongoose');
 
 
@@ -18,6 +17,9 @@ const CardSchema = mongoose.Schema({
     answer: {
         type: String,
         required: true,
+    },
+    fail_counter: {
+        type: Number
     }
 });
 
