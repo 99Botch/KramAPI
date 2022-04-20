@@ -47,8 +47,6 @@ module.exports.getCards = getCards = async (req, res, next) => {
                         }
                     });
                 });
-
-                console.log(cards);
                 return res.status(200).json({ cards: cards });
             })
             .catch((err) => {
