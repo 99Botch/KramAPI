@@ -27,9 +27,6 @@ const CardSchema = mongoose.Schema({
     interval: {
         type: Number
     },
-    success_streak: {
-        type: Number
-    },
 });
 
 
