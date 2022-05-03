@@ -60,7 +60,7 @@ module.exports.resetInterval = resetInterval =  async (req, res, next) => {
     
     try{
 
-        let interval = DateTime.local().plus({ minutes: 15 }).toString();  
+        let interval = DateTime.local().plus({ seconds: 60 }).toString();  
         interval = interval.slice(0,10) + " " + interval.slice(11,16);  
 
         const reset = await UserCard.updateOne(
@@ -68,7 +68,7 @@ module.exports.resetInterval = resetInterval =  async (req, res, next) => {
             {
                 $set: {
                     "cards.$.next_session": interval,
-                    "cards.$.interval": 15,
+                    "cards.$.interval": 60,
                     "cards.$.fail_counter": 0,
                     "cards.$.old_ease_factor": 0,
                     "cards.$.ease_factor": 2.5,
