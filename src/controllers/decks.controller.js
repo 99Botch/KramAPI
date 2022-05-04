@@ -3,7 +3,9 @@ const Deck  = require('../models/decks.model');
 const DeckCards  = require('../models/deck_card.model');
 const UserCards  = require('../models/user_card.model');
 const User  = require('../models/users.model');
-const { deckCreationValidation }= require('../config/validation')
+const { deckCreationValidation }= require('../config/validation');
+const { date } = require('joi');
+const { DateTime } = require("luxon");  
 
 
 // CREATE A DECK
@@ -82,11 +84,26 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
         
         Promise.all([
             await Deck.find({_id: {$in: ids.deck_ids}}),  
-            await DeckCards.find({deck_id: {$in: ids.deck_ids}}, {  _id : 0, card_ids: 1 })
+            await DeckCards.find({deck_id: { $in: ids.deck_ids }}, {  _id : 0, card_ids: 1 }),
+            await UserCards.find({user_id: { _id: req.params.id }}, {  _id : 0, cards: 1 })
         ])
-        .then(async ([ decks, deck_cards ]) => {
+        .then(async ([ decks, deck_cards, user_cards ]) => {
             let i = 0;
+            let to_remove = [];
+            const now = DateTime.now().toISO().substring(0, 10);
+
+            user_cards[0].cards.find(elem => {
+                if(elem.fail_counter >= 5 || elem.next_session > now)
+                    to_remove.push(elem.card_id.toString())
+            });
+
             deck_cards.forEach(elem => {
+                to_remove.forEach(item => {
+                    let index = elem.card_ids.indexOf(item.toString());
+                    if(index != -1)
+                        elem.card_ids.splice(index, 1);  
+                })
+
                 let card_count = {card_count: elem.card_ids.length};
                 decks[i] = { ...decks[i]._doc, ...card_count};
                 i++;
@@ -151,53 +168,6 @@ module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {
 
 
 // ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
-// module.exports.addDeck = addDeck = async (req, res, next) => {    
-//     try{
-//         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
-//         if (id != req.user._id) return res.status(401).json("Ids aren't matching");
-
-//         const match = req.body.ids.find(element => {
-//             return element === deck_id
-//         });
-//         if (match) return res.status(200).json({retrieved: match});
-        
-//         await Promise.all([
-//             Deck.findById({_id: deck_id}),
-//             DeckCards.findOne({ deck_id: deck_id }),
-//         ])
-//         .then(async ([_deck, _deckCards]) =>{
-//             const deck = await new Deck({
-//                 name: _deck.name,
-//                 category: _deck.category,
-//                 private: true,
-//                 description: null,
-//                 deck_style_id: null,
-//                 votes: 0,
-//                 voters: []
-//             });
-        
-//             const deckCards = await new DeckCards({
-//                 deck_id: deck._id,
-//                 user_id: id,
-//                 card_ids: _deckCards.card_ids
-//             });
-
-//             Promise.all([
-//                 await User.updateOne({ _id: id }, { $push: { deck_ids: [ deck._id ] }}, { upsert: true }),
-//                 await deck.save(),
-//                 await deckCards.save(),
-//             ])
-//             .then( async ([ deck, deck_cards, ownership ]) => {
-//                 return res.status(200).json({deck: deck, deckCards: deck_cards, ownership: ownership});
-//             })
-
-//         })
-        
-//     } catch(err) { res.status(400).json({message: err}) }
-// }
-
-
-// // ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
 module.exports.addDeck = addDeck = async (req, res, next) => {    
     try{
         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};

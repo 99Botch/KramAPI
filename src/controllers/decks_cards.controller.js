@@ -2,6 +2,7 @@
 const Cards = require("../models/cards.model");
 const DeckCards = require("../models/deck_card.model");
 const UserCard = require("../models/user_card.model");
+const { DateTime } = require("luxon");  
 
 // ADD CARD TO DECK
 module.exports.addCard = addCard = async (req, res, next) => {
@@ -82,6 +83,7 @@ module.exports.addCard = addCard = async (req, res, next) => {
 module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
+    const now = DateTime.now().toISO().substring(0, 10);
 
     try {
         const deck = await DeckCards.findOne({ deck_id: req.body.deck_id });
@@ -124,6 +126,8 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
                 }
             });
         });
+
+        userDeck.cards = userDeck.cards.filter(elem => elem.fail_counter < 5).filter(elem =>  elem.next_session < now);
 
         return res.status(200).json({ userDeck: userDeck });
     } catch (err) {
