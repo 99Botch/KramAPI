@@ -210,7 +210,13 @@ module.exports.deleteUser = deleteUser =  async (req, res, next) => {
             Promise.all([
                 Sessions.deleteOne({ "user_id": id }),
                 User.deleteOne({_id: id}),
-                Decks.deleteMany({ "_id": { $in: userData[0].deck_ids } },{ multi: true }),
+                Decks.deleteMany({
+                    $and: [
+                        { "_id": { $in: userData[0].deck_ids } },
+                        { private: true }   
+                    ]},
+                    { multi: true }
+                ),
                 DeckCards.deleteMany({ "user_id": id }),
                 UserCards.deleteMany({ "user_id": id }),
             ]);
