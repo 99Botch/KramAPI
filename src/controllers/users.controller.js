@@ -9,6 +9,8 @@ const Decks  = require('../models/decks.model');
 const DeckCards  = require('../models/deck_card.model');
 const UserCards  = require('../models/user_card.model');
 const { registerValidation, loginValidation, updateValidation }= require('../config/validation');
+const { DateTime } = require("luxon");  
+
 
 const cloudinary = require("cloudinary");
 require('dotenv').config();
@@ -45,13 +47,57 @@ module.exports.register = register = async (req, res, next) => {
         email: req.body.email,
         password: hashPassword,
         profile_pic_url: null,
-        deck_ids: []
     });
 
-    // and send the user to the db
+    const deck = await new Decks({
+        name: 'Welcome to Kram',
+        category: 'Other',
+        private: true,
+        description: 'Step in Kram using this deck for a review session!',
+        deck_style_id: null,
+        votes: 0,
+        voters: [{
+            voter_id: newUser._id,
+            vote: 'none'
+        }]
+    });
+
+    let deck_id = deck._id;
+    const deckCards = await new DeckCards({
+        deck_id: deck_id,
+        user_id: newUser._id,
+        card_ids: [
+            '62289678b09c5d9dddfef7d9'
+        ]
+    });
+
+    newUser.deck_ids = [deck_id]
+
+    const user_cards = await new UserCards({
+        user_id: newUser._id,  
+        cards: [{ 
+            card_id: '62289678b09c5d9dddfef7d9',      
+            next_session: DateTime.now().toISO().substring(0, 10),      
+            interval: 0.6,      
+            fail_counter: 0,      
+            old_ease_factor: null,      
+            ease_factor: 2.5,      
+            success_streak: 0,      
+            style_id: null    
+        }]
+    });
+
     try{
-        const registeredUser = await newUser.save();
-        res.status(200).json(registeredUser);
+        Promise.all([
+            await newUser.save(),
+            await deck.save(),
+            await deckCards.save(),
+            await user_cards.save()
+        ])
+            .then(async ([new_user]) => {
+                res.status(200).json(new_user);
+            })
+        
     } catch (err) { res.status(400).send(err) }
 }
 

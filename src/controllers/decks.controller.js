@@ -216,13 +216,13 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
             _deckCards.card_ids.forEach(elem =>{
                 let item = {
                     card_id: elem.toString(),
-                    next_session: null,
-                    interval: null,
+                    next_session: DateTime.now().toISO().substring(0, 10),
+                    interval: 0.60,
                     fail_counter: 0,
                     old_ease_factor: null,
                     ease_factor: 2.5,
                     success_streak: 0,
-                    style_id: null
+                    style_id: null,
                 }
                 user_cards.push(item)
             })
