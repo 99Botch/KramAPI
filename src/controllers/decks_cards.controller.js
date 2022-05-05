@@ -53,8 +53,8 @@ module.exports.addCard = addCard = async (req, res, next) => {
                                 cards: [
                                     {
                                         card_id: card_id,
-                                        next_session: null,
-                                        interval: null,
+                                        next_session: DateTime.now().toISO().substring(0, 10),
+                                        interval: 0.60,
                                         fail_counter: 0,
                                         old_ease_factor: null,
                                         ease_factor: 2.5,
@@ -127,7 +127,7 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
             });
         });
 
-        userDeck.cards = userDeck.cards.filter(elem => elem.fail_counter < 5).filter(elem =>  elem.next_session < now);
+        userDeck.cards = userDeck.cards.filter(elem => elem.fail_counter < 5).filter(elem =>  elem.next_session <= now);
 
         return res.status(200).json({ userDeck: userDeck });
     } catch (err) {
