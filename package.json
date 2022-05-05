@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon src/app.js"
+    "start": "nodemon build/index.js",
+    "build": "webpack"
   },
   "author": "Yvan Monod",
   "license": "ISC",
@@ -19,5 +20,9 @@
     "luxon": "^2.3.2",
     "mongoose": "^6.2.0",
     "nodemon": "^2.0.15"
+  },
+  "devDependencies": {
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
   }
 }
