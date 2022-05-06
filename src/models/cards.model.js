@@ -1,6 +1,8 @@
-// REFER T USERS MODEL
-const mongoose = require('mongoose');
+/*
+    Refer to users.model.js for more explantations
+*/
 
+const mongoose = require('mongoose');
 
 const CardSchema = mongoose.Schema({
     creator_id: {
@@ -28,6 +30,5 @@ const CardSchema = mongoose.Schema({
         type: Number
     },
 });
-
 
 module.exports = mongoose.model('Card', CardSchema);

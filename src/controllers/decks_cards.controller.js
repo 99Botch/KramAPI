@@ -1,10 +1,17 @@
-// const Deck  = require('../models/decks.model');
+/**
+ * Refer to cards.controller.js for general information 
+ * The comments from here onward are there to highlight pieces of code unique to the controller
+ */
 const Cards = require("../models/cards.model");
 const DeckCards = require("../models/deck_card.model");
 const UserCard = require("../models/user_card.model");
+
+// Luxon as a javascript library used for date manipumation such as moment.js
 const { DateTime } = require("luxon");  
 
-// ADD CARD TO DECK
+
+// ADD CARD TO DECK --------------------------------------------------------------------------------------------------------------------
+// The function gets trigered when a user adds a card to his deck
 module.exports.addCard = addCard = async (req, res, next) => {
     let [user_id, card_id, deck_id] =
         [req.params.id, req.body.card_id, req.body.deck_id] || {};
@@ -15,6 +22,7 @@ module.exports.addCard = addCard = async (req, res, next) => {
     try {
         await Promise.all([
             DeckCards.findOne({
+                // $and operator fetches the items mathing the 2 or more conditions prompted in the query
                 $and: [{ deck_id: deck_id }, { card_ids: card_id }],
             }),
             Cards.findOne({ _id: card_id }),
@@ -46,6 +54,8 @@ module.exports.addCard = addCard = async (req, res, next) => {
 
                     if (user_card) return res.status(200).json(deck_card);
 
+                    // When adding a card to a deck, it updates the user_card item related to the user. Therefore, the cards are given a set 
+                    // of initial values
                     const card = await UserCard.updateOne(
                         { user_id: user_id },
                         {
@@ -79,12 +89,20 @@ module.exports.addCard = addCard = async (req, res, next) => {
     }
 };
 
-// GET ALL CARDS OF A SPECIFIC DECK
+// GET ALL CARDS OF A SPECIFIC DECK --------------------------------------------------------------------------------------------------------------------
+/**
+ * When starting a review, the function gets trigerred to get the deck related to the deck
+ */
 module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
     const now = DateTime.now().toISO().substring(0, 10);
 
+    /**
+     * The first step is to fetch the deck for review
+     * Then get the list of ids belonging to get the dcards content
+     * And finally get the unique set of data relating to the user
+     */
     try {
         const deck = await DeckCards.findOne({ deck_id: req.body.deck_id });
         if (!deck) return res.status(404).json("Error | no cards in the deck");
@@ -127,6 +145,7 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
             });
         });
 
+        // Cards that are marked a leech of whose session date is not due yet are fileterd out from the review session
         userDeck.cards = userDeck.cards.filter(elem => elem.fail_counter < 5).filter(elem =>  elem.next_session <= now);
 
         return res.status(200).json({ userDeck: userDeck });
@@ -135,7 +154,10 @@ module.exports.getCardsDeck = getCardsDeck = async (req, res, next) => {
     }
 };
 
-// REMOVE CARD FROM DECK
+// REMOVE CARD FROM DECK --------------------------------------------------------------------------------------------------------------------
+/**
+ * The Function gets trigerred when a user removes a card from this deck
+ */
 module.exports.deleteDeckCards = deleteDeckCards = async (req, res, next) => {
     let [user_id, card_id, deck_id] =
         [req.params.id, req.body.card_id, req.body.deck_id] || {};

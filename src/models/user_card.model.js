@@ -1,4 +1,7 @@
-// REFER T USERS MODEL
+/*
+    Refer to users.model.js for more explantations
+*/
+
 const mongoose = require('mongoose');
 
 const UserCardSchema = mongoose.Schema({

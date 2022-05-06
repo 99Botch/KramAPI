@@ -1,33 +1,37 @@
-// Joi is a library used for object validation
+// JOI is a library that utilizes schema for object validation
 const Joi = require('joi');
-// the email regex pattern forces the user to create a password with at leat one letter and number + allow some speial characters
+
+// REG_PATTERN specifies password format rules: a password must contain at least one uppercase and lowercase letter, 
+// a number and a special character: -_.,@ ]+
 const REG_PATTERN = "^(?=.*[0-9])(?=.*[a-zA-ZÀ-ȕ])([a-zA-ZÀ-ȕ0-9(),-_.,@ ]+)$";
 
-// registerValidation checks the validity of the data passed by /register (e.g, username must be between 6 and 30 characters long and is require for registration)
+/**
+    registerValidation checks the client's request to registe a new profile
+    e.g. 'username' must be between 6 and 30 characters long  and is required for registration
+    emails only accepts domain names finishing by .com, .net & .org
+    'email' must follow REG_PATTERN rules & 'repeat_password' must match 'password'
+*/
 module.exports.registerValidation = registerValidation = (data) => {
     const schema = Joi.object({
         username: Joi.string()
             .min(6)
             .max(30)
             .required(),
-        // email will accept only three domains -> com, net & org (and can't be under 2 characters)
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net', 'org'] } })
             .required(),
-        // password has to follow certain regex rule (l.4)
         password: Joi.string()
             .pattern(new RegExp(`${ REG_PATTERN }`))
             .required(),
-        // repeat password must match the first one
         repeat_password: Joi.ref('password'),
     });
 
     return schema.validate(data);
 }
 
-// LOGIN VALIDATION
+// REFER TO THE ABOVE FUNCTION FOR EXPLANATION
+// LOGIN VALIDATION --------------------------------------------------------------------------------------------------------------------
 module.exports.loginValidation = loginValidation = (data) => {
-    // refer to the above function
     const schema = Joi.object({ 
         email: Joi.string()
             .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
@@ -40,7 +44,7 @@ module.exports.loginValidation = loginValidation = (data) => {
     return schema.validate(data);
 }
 
-// UPDATE PROFILE VALIDATION 
+// UPDATE VALIDATION --------------------------------------------------------------------------------------------------------------------
 module.exports.updateValidation = updateValidation = (data) => {
     // refer to registerValidation
     const schema = Joi.object({
@@ -56,9 +60,8 @@ module.exports.updateValidation = updateValidation = (data) => {
     return schema.validate(data);
 }
 
-// UPDATE PIC PROFILE 
+// UPDATE PIC VALIDATION --------------------------------------------------------------------------------------------------------------------
 module.exports.updatePicValidation = updatePicValidation = (data) => {
-    // refer to registerValidation
     const schema = Joi.object({
         profile_pic_url: Joi.string()
         .required()
@@ -67,14 +70,12 @@ module.exports.updatePicValidation = updatePicValidation = (data) => {
     return schema.validate(data);
 }
 
-// UPDATE PASSWORD 
+// UPDATE PASSWORD VALIDATION --------------------------------------------------------------------------------------------------------------------
 module.exports.updatePasswordValidation = updatePasswordValidation = (data) => {
-    // refer to registerValidation
     const schema = Joi.object({
         new_password: Joi.string()
             .pattern(new RegExp(`${ REG_PATTERN }`))
             .required(),
-        // repeat password must match the first one
         repeat_password: Joi.ref('new_password'),
         old_password: Joi.string()
             .required(),
@@ -85,7 +86,7 @@ module.exports.updatePasswordValidation = updatePasswordValidation = (data) => {
     return schema.validate(data);   
 }
 
-// DECK CREATION
+// DECK CREATION VALIDATION --------------------------------------------------------------------------------------------------------------------
 module.exports.deckCreationValidation = deckCreationValidation = (data) => {
     // refer to registerValidation
     const schema = Joi.object({

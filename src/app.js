@@ -2,6 +2,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+// .env file store all the important environment variables requried for the application to run such as the database URI. 
+// These environment are hidden as they consist of critical information that unauthorized users should not get access to.
 const dotenv = require('dotenv');
 
 // import the routes that contain the logic communicating with the db

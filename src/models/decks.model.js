@@ -1,4 +1,7 @@
-// REFER T USERS MODEL
+/*
+    Refer to users.model.js for more explantations
+*/
+
 const mongoose = require('mongoose');
 
 const DeckSchema = mongoose.Schema({
@@ -49,6 +52,5 @@ const DeckSchema = mongoose.Schema({
         _id: { required: false },
     }],
 });
-
 
 module.exports = mongoose.model('Deck', DeckSchema);

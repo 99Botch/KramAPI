@@ -1,14 +1,16 @@
-// const Sessions  = require('../models/sessions.model');
-const Deck  = require('../models/decks.model');
-const DeckCards  = require('../models/deck_card.model');
-const UserCards  = require('../models/user_card.model');
-const User  = require('../models/users.model');
+/**
+ * Refer to cards.controller.js for general information 
+ * The comments from here onward are there to highlight pieces of code unique to the controller
+ */
+const Deck = require('../models/decks.model');
+const DeckCards = require('../models/deck_card.model');
+const UserCards = require('../models/user_card.model');
+const User = require('../models/users.model');
 const { deckCreationValidation }= require('../config/validation');
-const { date } = require('joi');
 const { DateTime } = require("luxon");  
 
 
-// CREATE A DECK
+// CREATE A DECK --------------------------------------------------------------------------------------------------------------------
 module.exports.createDeck = createDeck = async (req, res, next) => {    
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -43,8 +45,8 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
             await deck.save(),
             await deckCards.save(),
             await User.updateOne(
-                {_id: id},
-                {$push: { deck_ids: deck_id} }
+                { _id: id },
+                { $push: { deck_ids: deck_id} }
             )
         ])
         .then( async ([ deck, deck_cards, ownership ]) => {
@@ -54,7 +56,7 @@ module.exports.createDeck = createDeck = async (req, res, next) => {
 }
 
 
-// RETRIEVE ALL DECKS THAT ARE PUBLIC
+// RETRIEVE ALL DECKS THAT ARE PUBLIC --------------------------------------------------------------------------------------------------------------------
 module.exports.publicDecks = publicDecks = async (req, res, next) => {    
     try{
         const decks = await Deck.find({ private: false });
@@ -64,7 +66,7 @@ module.exports.publicDecks = publicDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
-// RETRIEVE ALL DECKS THAT ARE PUBLIC
+// SEARCH FOR PUBLIC DECKS --------------------------------------------------------------------------------------------------------------------
 module.exports.searchPublicDecks = searchPublicDecks = async (req, res, next) => {    
     try{
         const decks = await Deck.find({ private: false, name: { $regex : new RegExp(req.params.name.split('+').join(' '), "i") } });
@@ -75,8 +77,7 @@ module.exports.searchPublicDecks = searchPublicDecks = async (req, res, next) =>
 }
 
 
-// RETRIEVE PERSONNAL DECKS
-
+// RETRIEVE DECKS ATTACH TO THE USER PROFILE DECKS --------------------------------------------------------------------------------------------------------------------
 module.exports.userDecks = userDecks = async (req, res, next) => {    
     try{
         const ids =  await User.findOne({_id: req.params.id}, {  _id : 0, deck_ids: 1 });
@@ -91,6 +92,14 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
             let i = 0;
             let to_remove = [];
             const now = DateTime.now().toISO().substring(0, 10);
+
+            /**
+             *The following find and for each loops are here to remove cards that are burried as leech or whose next session is not due to the day of the review
+             *I resorted quite a few times to this sort of inefficient trick to get exactly hat I needed to display on the client.
+             *If I was to refactor my code from scratch, I would rather go for pipelines that does the filtering directly in mongo's client
+             *But since I did that bit of code tool late in the developmentI went for a easy solution, even if very inefficient rom my perspective
+             */
+
 
             user_cards[0].cards.find(elem => {
                 if(elem.fail_counter >= 5 || elem.next_session > now)
@@ -114,6 +123,7 @@ module.exports.userDecks = userDecks = async (req, res, next) => {
     } catch(err) { res.status(400).json({message: err}) }
 }
 
+// SEARCH DECKS --------------------------------------------------------------------------------------------------------------------
 module.exports.searchDecks = searchDecks = async (req, res, next) => {
     try{
         const user =  await User.findOne({_id: req.params.id});
@@ -140,7 +150,7 @@ module.exports.searchDecks = searchDecks = async (req, res, next) => {
 }
 
 
-// RETRIEVE PERSONNAL DECKS
+// RETRIEVE PERSONNAL DECKS --------------------------------------------------------------------------------------------------------------------
 module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {    
     try{
         const ids =  await User.findById({ _id: req.params.id }, {  _id : 0, deck_ids: 1 });
@@ -167,7 +177,17 @@ module.exports.getDeckCnt = getDeckCnt = async (req, res, next) => {
 }
 
 
-// ATTACH PUBLIC DECK TO ONE'S PERSONNAL PROFILE
+// ADDING A PUBLIC DECK TO ONE's PROFILE ---------------------------------------------------------------------------------------------------------
+/**
+ * The functions gets trigered when a user adds a oublic deck to his profile
+ * 
+ * A new deck is created
+ * When doing so, the deck id gets added to the list of deck ids attach to the user's profile
+ * The id of the deck is generated to make it unique to that specific profile
+ * A user_deck item is created which lists all the crds attach to the card
+ * and ta user_cards item is finally created or updated, adding the cards to attach to the user's profile
+ * Their sets of data are given initial values if and only if the user did not own already the cards
+ */
 module.exports.addDeck = addDeck = async (req, res, next) => {    
     try{
         let [id, deck_id] = [req.params.id, req.body.deck_id] || {};
@@ -244,7 +264,7 @@ module.exports.addDeck = addDeck = async (req, res, next) => {
 
 
 
-// DELETE A DECK
+// DELETE A DECK ---------------------------------------------------------------------------------------------------------
 module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
     let [id, deck_id] = [req.params.id, req.params.deck_id] || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -269,7 +289,7 @@ module.exports.deleteDecks = deleteDecks =  async (req, res, next) => {
 }
 
 
-// UPDATE A DECK
+// UPDATE A DECK ---------------------------------------------------------------------------------------------------------
 module.exports.updateDeck = updateDeck =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -296,7 +316,22 @@ module.exports.updateDeck = updateDeck =  async (req, res, next) => {
 }
 
 
-// UPDATE DECK VOTES
+// UPDATE DECK VOTES ---------------------------------------------------------------------------------------------------------
+/**
+ * I found interesting to add a voting system to sort decks between themsleves
+ * The sorting is quite basic, the more a deck has votes, the higher it is shown
+ * If I would to redo the system, I would probaly use a logarithmic function so that decks with large voting differences would get
+ * similar exposure
+ * 
+ * I made a very silly system to prevent user from voting more taht once a deck. It utilizes a string: either up or down
+ * the more up votes, the higher the vote count and vice versa. The _id attests that the user voted fro that deck.
+ * 
+ * It would have been better if I just updated the vote count and kept a log of the users who voted for the deck instead 
+ * of adding more complexity bu addin the vote attribute
+ * I dd that very early in the development and never came back to that idea. If I was to efactor the code
+ * That would be one of the first thing I would change 
+ */
+
 module.exports.updateDeckVote = updateDeckVote =  async (req, res, next) => {
     let [id, deck_id, votes] = [req.params.id, req.body.deck_id, req.body.votes] || {};
 

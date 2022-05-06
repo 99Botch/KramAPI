@@ -1,51 +1,66 @@
-// Import the dependecies & functions necessary to run the API - routers allows us to create routes in a specific file
+// Import the dependecies & functions necessary to run the API - routers allows us to create routes to a specific file
 const router = require('express').Router();
-// import the function to check the validity of the tokens
+
+
+// imports the function from tokenValidation. The function gets the user tokens as parameters
+// and checks the validity of the the user credentials before allowing access to the protected routes.
 const verify  = require('../config/tokenValidation'); 
-// import UsersController from '../controllers/users.controller'
-const { register, login, getUsers, getUser, updateUser, deleteUser, getUserPic,
-    logout, getSession, updateUserPic, updateUserPassword }= require('../controllers/users.controller');
-// const { prependOnceListener } = require('../models/users.model');
 
-/* Each URI is unique and refers to a certain function. For example, if the URI /users/register is triggered, then the application knows that the request is a post method and the response
-// awaited will be process by the register function in the Users class from users.controller.
 
-A Rest API request works as such: 
-- the get retrieves only the data of a specified resource.
-- the post submits an entity, in the application's case, a JSON file, to the database
-- the put method updates all the specified representations of a target matching the request content
-- and the delete method will delete all the specified resources
+/* 
+    Each URI is unique and refers to a function in the user controller:
+    i.e., if the URI /users/register is called, the application knows what function the POST request refers to,
+    the crontroller sends the request and waits a response, expecting either a fail or success response 
 
-if an URI ends with "/:n", that means that a value is passed to te URI, for example, it could be for retreiving a specific item in the database like on
-line 25, where the method will fetch a user based on its id.
+    Request work as such: 
+    - GET only retrieves data of a specified resource
+    - POST submits an entity, for Kram, a JSON file, to the database
+    - PUT method updates all the specified representations of a target matching the request content
+    - DELETE removes all the specified resources
+
+    if an URI ends with "/:n", a value is passed to te URI, i.e.: 
+    the function getUser expect an id in the URI to retrieve the user
 */
+const { 
+    register, login, getUsers, getUser, updateUser, deleteUser, getUserPic, logout, getSession, updateUserPic, updateUserPassword 
+} = require('../controllers/users.controller');
 
 
-// USERS URI
+// USER URIs --------------------------------------------------------------------------------------------------------------------
 router.post("/register", register);
+
 router.get("/", getUsers);
+
+// if 'verify' is passed in the parameters, the user token is passed for verification
 router.get('/:id', verify, async function(req,res){
     await getUser(req,res);
 });
+
 router.get('/pic/:id', verify, async function(req,res){
     await getUserPic(req,res);
 });
+
 router.put('/:id', verify, async function(req,res){
     await updateUser(req,res);
 });
+
 router.put('/pic/:id', verify, async function(req,res){
     await updateUserPic(req,res);
 });
+
 router.put('/password/:id', verify, async function(req,res){
     await updateUserPassword(req,res);
 });
+
 router.delete('/:id', verify, async function(req,res){
     await deleteUser(req,res);
 });
 
-// SESSIONS URI
+// SESSION URIS --------------------------------------------------------------------------------------------------------------------
 router.post("/login", login);
+
 router.get("/session/:id", getSession);
+
 router.delete('/logout/:id', verify, async function(req,res){
     await logout(req,res);
 });

@@ -1,9 +1,14 @@
+/**
+ * Refer to cards.controller.js for general information 
+ * The comments from here onward are there to highlight pieces of code unique to the controller
+ */
 const DeckCards  = require('../models/deck_card.model');
 const UserCard  = require('../models/user_card.model');
 const { DateTime } = require("luxon");
 
 
-// UPDATE DECK CARD REVIEW LAPSE
+// UPDATE DECK CARD REVIEW LAPSE ---------------------------------------------------------------------------------------------------------
+// Function resets the data of a card if the user considers that he did not properly learnt the flashcard
 module.exports.getUserCardsDetails = getUserCardsDetails =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -14,6 +19,8 @@ module.exports.getUserCardsDetails = getUserCardsDetails =  async (req, res, nex
     } catch (err){  return res.status(500).json('No cards yet!')}
 }
 
+// UPDATE DECK CARD DETAILS ---------------------------------------------------------------------------------------------------------
+// The function updates the card details in the user_cards document after a review, like updating the intervals
 module.exports.updateCardDetails = updateCardDetails =  async (req, res, next) => {
     let id = req.params.id || {};
     if (id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -33,7 +40,8 @@ module.exports.updateCardDetails = updateCardDetails =  async (req, res, next) =
 }
 
 
-// REMOVE THE CARDS
+// REMOVE THE CARDS ---------------------------------------------------------------------------------------------------------
+// That function deletes the card from a profile, but this function did not make it to production
 module.exports.deleteUserCards = deleteUserCards =  async (req, res, next) => {
     let [ user_id, card_id ] = [req.params.id, req.body.card_id] || {};
     if (user_id != req.user._id) return res.status(401).json("Ids aren't matching");
@@ -53,7 +61,8 @@ module.exports.deleteUserCards = deleteUserCards =  async (req, res, next) => {
     } catch (err){  return res.status(500).json({ message: "" + err  })}
 }
 
-// REMOVE THE CARDS
+// REMOVE THE CARDS ---------------------------------------------------------------------------------------------------------
+// If a user deems that he did not processed information well, he can put it back to the learning cue
 module.exports.resetInterval = resetInterval =  async (req, res, next) => {
     let [ user_id, card_id ] = [req.params.id, req.body.card_id] || {};
     if (user_id != req.user._id) return res.status(401).json("Ids aren't matching");
