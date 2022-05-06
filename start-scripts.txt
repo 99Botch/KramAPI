@@ -1,2 +1,0 @@
-deving: "start": "nodemon src/app.js"
-production: "start": "nodemon build/index.js",
