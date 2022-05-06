@@ -5,6 +5,7 @@ Kram API is the application responsible to communicate with the client Kram and 
 - copy the `example.env` file and rename it as `.env`
 - Modify DB_CONNECTION to the name of your mongo cluster's URI
 - Generate a `SECRET_KEY`
+- Create a cloudinary account and get the API key, cloud name and seret key that you will then put in the `.env` file
 - Finally run `npm start`
 
 Run `npm build` to complie you code
